@@ -17,13 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Add Attendance
     if (isset($_POST['add_attendance'])) {
         $emp_id = $_POST['emp_id'];
-        $date = $_POST['date'];
         $check_in = $_POST['check_in'];
         $check_out = $_POST['check_out'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO attendance (emp_id, date, check_in, check_out, status) 
-                  VALUES ($emp_id, '$date', '$check_in', '$check_out', '$status')";
+        $query = "INSERT INTO attendance (emp_id,  check_in, check_out, status) 
+                  VALUES ($emp_id,  '$check_in', '$check_out', '$status')";
         $conn->query($query);
     }
 
@@ -31,14 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['update_attendance'])) {
         $id = $_POST['attendance_id'];
         $emp_id = $_POST['emp_id'];
-        $date = $_POST['date'];
         $check_in = $_POST['check_in'];
         $check_out = $_POST['check_out'];
         $status = $_POST['status'];
 
         $query = "UPDATE attendance SET 
-                  emp_id=$emp_id, 
-                  date='$date', 
+                  emp_id=$emp_id,  
                   check_in='$check_in', 
                   check_out='$check_out', 
                   status='$status' 
@@ -100,6 +97,23 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
     <style>
+        /* Attendance Table Font Styling */
+        #attendanceTable thead th {
+            font-size: 18px;
+            /* Larger font for headers */
+            font-weight:bolder !important;
+            /* Bold headers */
+            color: #000000;
+        }
+
+        #attendanceTable tbody td {
+            font-size: 16px;
+            /* Slightly smaller for body */
+           
+            /* Bold body text */
+            color:rgb(19, 19, 19);
+        }
+
         /* Updated Table Styling */
         #adminTable {
             font-size: 16px;
@@ -546,7 +560,7 @@ $employees = $conn->query("SELECT * FROM employees");
                     </div>
                 </div>
             </div>
-       
+
             <!-- Add Attendance Button -->
             <div class="d-flex justify-content-end mb-3">
                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
@@ -610,10 +624,6 @@ $employees = $conn->query("SELECT * FROM employees");
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>Date</label>
-                                    <input type="date" name="date" class="form-control" required>
-                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-4 mb-3">
@@ -665,10 +675,6 @@ $employees = $conn->query("SELECT * FROM employees");
                                             <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
                                         <?php endwhile; ?>
                                     </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>Date</label>
-                                    <input type="date" name="date" id="edit_date" class="form-control" required>
                                 </div>
                             </div>
                             <div class="row">
