@@ -23,11 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL'; // Handle NULL case
         $position = $_POST['position'];
-        $date_joined = $_POST['date_joined'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO employees (name, email, phone, gender, department_id, position, date_joined, status) 
-                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$position', '$date_joined', '$status')";
+        $query = "INSERT INTO employees (name, email, phone, gender, department_id, position, status) 
+                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$position', '$status')";
         $conn->query($query);
     }
 
@@ -40,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL';
         $position = $_POST['position'];
-        $date_joined = $_POST['date_joined'];
         $status = $_POST['status'];
 
         $query = "UPDATE employees SET 
@@ -49,8 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               phone='$phone', 
               gender='$gender', 
               department_id=$department_id, 
-              position='$position', 
-              date_joined='$date_joined', 
+              position='$position',  
               status='$status' 
               WHERE emp_id=$id";
         $conn->query($query);
@@ -656,10 +653,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Date Joined</label>
-                                    <input type="date" name="date_joined" class="form-control" required>
-                                </div>
+                                
                                 <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" class="form-select" required>
