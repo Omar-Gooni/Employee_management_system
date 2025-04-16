@@ -591,14 +591,15 @@ $departments = $conn->query("SELECT * FROM departments");
                             <td><?= $row['position'] ?></td>
 
                             <td><?= $row['status'] ?></td>
-                            <td>
-                                <!-- In your table row - Update the edit button -->
-                                <button class="btn btn-primary btn-sm editBtn"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="btn btn-danger btn-sm deleteBtn"
-                                    data-id="<?= $row['emp_id'] ?>">
+                            <td style="white-space: nowrap;">
+                                <button class="btn btn-primary btn-sm editBtn d-inline-block">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-danger btn-sm deleteBtn d-inline-block" data-id="<?= $row['emp_id'] ?>">
                                     Delete
                                 </button>
                             </td>
+
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -629,13 +630,17 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <input type="text" name="phone" class="form-control" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label>Gender</label>
-                                    <select name="gender" class="form-select" required>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-
-                                    </select>
+                                    <label class="form-label d-block">Gender</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderMale" value="Male" required>
+                                        <label class="form-check-label" for="genderMale">Male</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="Female">
+                                        <label class="form-check-label" for="genderFemale">Female</label>
+                                    </div>
                                 </div>
+
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -653,7 +658,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                 </div>
                             </div>
                             <div class="row">
-                                
+
                                 <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" class="form-select" required>
@@ -697,11 +702,15 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <input type="text" name="phone" id="edit_phone" class="form-control" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label>Gender</label>
-                                    <select name="gender" id="edit_gender" class="form-select" required>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                    </select>
+                                    <label class="form-label d-block">Gender</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderMale" value="Male" required>
+                                        <label class="form-check-label" for="genderMale">Male</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="gender" id="edit_gender" value="Female">
+                                        <label class="form-check-label" for="genderFemale">Female</label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -723,10 +732,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Date Joined</label>
-                                    <input type="date" name="date_joined" id="edit_date_joined" class="form-control" required>
-                                </div>
+                               
                                 <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" id="edit_status" class="form-select" required>
@@ -846,7 +852,7 @@ $departments = $conn->query("SELECT * FROM departments");
                 document.getElementById('edit_gender').value = gender;
                 document.getElementById('edit_department_id').value = departmentId;
                 document.getElementById('edit_position').value = position;
-                document.getElementById('edit_date_joined').value = dateJoined;
+         
                 document.getElementById('edit_status').value = status;
 
                 // Show the modal
