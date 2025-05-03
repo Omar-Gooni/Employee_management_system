@@ -174,6 +174,13 @@ $employees = $conn->query("SELECT * FROM employees");
                 </li>
                 <br>
                 <li class="side-nav-item">
+                    <a href="employee_task.php" class="side-nav-link">
+                        <i class="fa-solid fa-tasks text-white"></i>
+                        <span class="text-white">Employee_Task</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>

@@ -24,9 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $department_id = $_POST['department_id'] ?: 'NULL'; // Handle NULL case
         $position = $_POST['position'];
         $status = $_POST['status'];
+        $password = $_POST['password'];
 
-        $query = "INSERT INTO employees (name, email, phone, gender, department_id, position, status) 
-                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$position', '$status')";
+        $query = "INSERT INTO employees (name, email, phone, gender, department_id, position, status, password) 
+                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$position', '$status' , '$password')";
         $conn->query($query);
     }
 
@@ -40,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $department_id = $_POST['department_id'] ?: 'NULL';
         $position = $_POST['position'];
         $status = $_POST['status'];
+        $password = $_POST['password'];
 
         $query = "UPDATE employees SET 
               name='$name', 
@@ -48,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               gender='$gender', 
               department_id=$department_id, 
               position='$position',  
-              status='$status' 
+              status='$status',
+              password='$password'
               WHERE emp_id=$id";
         $conn->query($query);
     }
@@ -177,6 +180,13 @@ $departments = $conn->query("SELECT * FROM departments");
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="employee_task.php" class="side-nav-link">
+                        <i class="fa-solid fa-tasks text-white"></i>
+                        <span class="text-white">Employee_Task</span>
                     </a>
                 </li>
                 <br>
@@ -570,11 +580,11 @@ $departments = $conn->query("SELECT * FROM departments");
                         <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Password</th>
                         <th>Phone</th>
                         <th>Gender</th>
                         <th>Department</th>
                         <th>Position</th>
-
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -585,6 +595,7 @@ $departments = $conn->query("SELECT * FROM departments");
                             <td><?= $row['emp_id'] ?></td>
                             <td><?= $row['name'] ?></td>
                             <td><?= $row['email'] ?></td>
+                            <td><?= $row['password'] ?></td>
                             <td><?= $row['phone'] ?></td>
                             <td><?= $row['gender'] ?></td>
                             <td><?= $row['department_name'] ?? '' ?></td>
@@ -622,6 +633,10 @@ $departments = $conn->query("SELECT * FROM departments");
                                 <div class="col-md-6 mb-3">
                                     <label>Email</label>
                                     <input type="email" name="email" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Password</label>
+                                    <input type="password" name="password" class="form-control" required>
                                 </div>
                             </div>
                             <div class="row">
@@ -694,6 +709,10 @@ $departments = $conn->query("SELECT * FROM departments");
                                 <div class="col-md-6 mb-3">
                                     <label>Email</label>
                                     <input type="email" name="email" id="edit_email" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Password</label>
+                                    <input type="Password" name="Password" id="edit_Password" class="form-control" required>
                                 </div>
                             </div>
                             <div class="row">
@@ -828,12 +847,13 @@ $departments = $conn->query("SELECT * FROM departments");
                 const empId = row.cells[0].textContent;
                 const name = row.cells[1].textContent;
                 const email = row.cells[2].textContent;
-                const phone = row.cells[3].textContent;
-                const gender = row.cells[4].textContent;
-                const department = row.cells[5].textContent;
-                const position = row.cells[6].textContent;
-                const dateJoined = row.cells[7].textContent;
-                const status = row.cells[8].textContent;
+                const password = row.cells[3].textContent;   
+                const phone = row.cells[4].textContent;
+                const gender = row.cells[5].textContent;
+                const department = row.cells[6].textContent;
+                const position = row.cells[7].textContent;
+                const dateJoined = row.cells[8].textContent;
+                const status = row.cells[9].textContent;
 
                 // Find the department ID (this assumes department name is unique)
                 let departmentId = '';
@@ -848,6 +868,7 @@ $departments = $conn->query("SELECT * FROM departments");
                 document.getElementById('edit_emp_id').value = empId;
                 document.getElementById('edit_name').value = name;
                 document.getElementById('edit_email').value = email;
+                document.getElementById('edit_Password').value = password;
                 document.getElementById('edit_phone').value = phone;
                 document.getElementById('edit_gender').value = gender;
                 document.getElementById('edit_department_id').value = departmentId;

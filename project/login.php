@@ -6,27 +6,39 @@ include 'db_connect.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $conn->real_escape_string($_POST['email']);
     $password = $conn->real_escape_string($_POST['password']);
-    
-    $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ? AND password = ?");
+    $is_admin = isset($_POST['is_admin']);
+
+    if ($is_admin) {
+        // Admin login
+        $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ? AND password = ?");
+    } else {
+        // Employee login
+        $stmt = $conn->prepare("SELECT * FROM employees WHERE email = ? AND password = ?");
+    }
+
     $stmt->bind_param("ss", $email, $password);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows == 1) {
-        $admin = $result->fetch_assoc();
-        
-        // Login successful
-        $_SESSION['admin_id'] = $admin['admin_id'];
-        $_SESSION['admin_name'] = $admin['name'];
-        $_SESSION['admin_email'] = $admin['email'];
-        
-        // Redirect to dashboard
-        header("Location: dashboard.php");
+        $user = $result->fetch_assoc();
+
+        if ($is_admin) {
+            $_SESSION['admin_id'] = $user['admin_id'];
+            $_SESSION['admin_name'] = $user['name'];
+            $_SESSION['admin_email'] = $user['email'];
+            header("Location: dashboard.php");
+        } else {
+            $_SESSION['emp_id'] = $user['emp_id'];
+            $_SESSION['name'] = $user['name'];
+            $_SESSION['email'] = $user['email'];
+            header("Location: employee_dashboard.php");
+        }
         exit();
     } else {
         $error = "Invalid email or password";
     }
-    
+
     $stmt->close();
 }
 ?>
@@ -36,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>Login</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -44,8 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Custom CSS -->
     <style>
         .gradient-custom {
-            background: rgb(46, 52, 62);
-            background: -webkit-linear-gradient(to right, rgb(46, 52, 62), rgb(30, 35, 43));
             background: linear-gradient(to right, rgb(46, 52, 62), rgb(30, 35, 43));
             min-height: 100vh;
         }
@@ -54,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: none;
             border-radius: 1rem;
             box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.2);
-            overflow: hidden;
         }
 
         .form-control {
@@ -92,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="mb-4">
                             <i class="fas fa-user-shield fa-4x" style="color: rgb(19, 79, 221);"></i>
                         </div>
-                        <h2 class="mb-4">Admin Login</h2>
+                        <h2 class="mb-4">Login</h2>
                         <p class="mb-4 text-muted">Please enter your credentials</p>
 
                         <?php if (isset($error)): ?>
@@ -104,9 +113,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
                                 <label for="email">Email address</label>
                             </div>
-                            <div class="form-floating mb-4">
+                            <div class="form-floating mb-3">
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                                 <label for="password">Password</label>
+                            </div>
+
+                            <div class="form-check mb-4 text-start">
+                                <input class="form-check-input" type="checkbox" value="1" id="is_admin" name="is_admin">
+                                <label class="form-check-label" for="is_admin">
+                                    Login as Admin
+                                </label>
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
