@@ -1,6 +1,7 @@
 <?php
 session_start();
-include 'db_connect.php';
+include '../connection/db_connect.php';
+
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -28,13 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['admin_name'] = $user['name'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['admin_email'] = $user['email'];
-            header("Location: dashboard.php");
+            header("Location: ../admin/dashboard.php");
         } else {
             $_SESSION['emp_id'] = $user['emp_id'];
             $_SESSION['name'] = $user['name'];
             $_SESSION['position'] = $user['position'];
             $_SESSION['email'] = $user['email'];
-            header("Location: employee_dashboard.php");
+            header("Location: ../employee/employee_dashboard.php");
         }
         exit();
     } else {

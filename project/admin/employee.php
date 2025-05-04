@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['admin_id'])) {
-    header("Location: login.php");
+    header("Location: ../login/login.php");
     exit();
 }
 ?>
@@ -11,7 +11,7 @@ if (!isset($_SESSION['admin_id'])) {
 
 
 <?php
-include 'db_connect.php';
+include '../connection/db_connect.php';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -85,28 +85,28 @@ $departments = $conn->query("SELECT * FROM departments");
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="assets/images/favicon.ico">
+    <link rel="shortcut icon" href="../assets/images/favicon.ico">
 
-    <link rel="stylesheet" href="assets/css/app.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
 
     <!-- DataTable CSS -->
     <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
 
-    <script src="assets/js/vendor.min.js"></script>
-    <script src="assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- third party css -->
-    <link href="assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- App css -->
-    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
-    <link href="assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
+    <link href="../assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
+    <link href="../assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
 
 
     <style>
@@ -137,10 +137,10 @@ $departments = $conn->query("SELECT * FROM departments");
             <!-- LOGO -->
             <a href="dashboard.php" class="logo text-center logo-light">
                 <span class="logo-lg">
-                    <img src="assets/images/logo.png" alt="" height="16">
+                    <img src="../assets/images/logo.png" alt="" height="16">
                 </span>
                 <span class="logo-sm">
-                    <img src="assets/images/logo_sm.png" alt="" height="16">
+                    <img src="../assets/images/logo_sm.png" alt="" height="16">
                 </span>
             </a>
 
@@ -185,8 +185,8 @@ $departments = $conn->query("SELECT * FROM departments");
                 <br>
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
-                        <i class="fa-solid fa-tasks text-white"></i>
-                        <span class="text-white">Employee_Task</span>
+                        <i class="fa-solid fa-clipboard-check text-white"></i>
+                        <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
                 <br>
@@ -227,7 +227,7 @@ $departments = $conn->query("SELECT * FROM departments");
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
                             <span class="account-user-avatar">
-                                <img src="assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
+                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
                             </span>
                             <span>
                             <span>
@@ -278,7 +278,7 @@ $departments = $conn->query("SELECT * FROM departments");
                             <!-- item-->
                             <a href="javascript:void(0);" class="dropdown-item notify-item">
                                 <div class="d-flex">
-                                    <img class="d-flex me-2 rounded-circle" src="assets/images/users/avatar-2.jpg" alt="Generic placeholder image" height="32">
+                                    <img class="d-flex me-2 rounded-circle" src="../assets/images/users/avatar-2.jpg" alt="Generic placeholder image" height="32">
                                     <div class="w-100">
                                         <h5 class="m-0 font-14">Erwin Brown</h5>
                                         <span class="font-12 mb-0">UI Designer</span>
@@ -289,7 +289,7 @@ $departments = $conn->query("SELECT * FROM departments");
                             <!-- item-->
                             <a href="javascript:void(0);" class="dropdown-item notify-item">
                                 <div class="d-flex">
-                                    <img class="d-flex me-2 rounded-circle" src="assets/images/users/avatar-5.jpg" alt="Generic placeholder image" height="32">
+                                    <img class="d-flex me-2 rounded-circle" src="../assets/images/users/avatar-5.jpg" alt="Generic placeholder image" height="32">
                                     <div class="w-100">
                                         <h5 class="m-0 font-14">Jacob Deo</h5>
                                         <span class="font-12 mb-0">Developer</span>
@@ -563,17 +563,17 @@ $departments = $conn->query("SELECT * FROM departments");
     <!-- END wrapper -->
 
     <!-- bundle -->
-    <script src="assets/js/vendor.min.js"></script>
-    <script src="assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
 
     <!-- third party js -->
-    <script src="assets/js/vendor/apexcharts.min.js"></script>
-    <script src="assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
-    <script src="assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+    <script src="../assets/js/vendor/apexcharts.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
     <!-- third party js ends -->
 
     <!-- demo app -->
-    <script src="assets/js/pages/demo.dashboard.js"></script>
+    <script src="../assets/js/pages/demo.dashboard.js"></script>
     <!-- end demo js-->
 
 

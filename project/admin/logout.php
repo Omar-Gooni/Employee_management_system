@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['admin_id'])) {
-    header("Location: login.php");
+    header("Location: ../login/login.php");
     exit();
 }
 ?>
@@ -19,6 +19,6 @@ $_SESSION = array();
 session_destroy();
 
 // Redirect to login page
-header("Location: login.php");
+header("Location: ../login/login.php");
 exit();
 ?>
