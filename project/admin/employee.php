@@ -366,7 +366,7 @@ $departments = $conn->query("SELECT * FROM departments");
                             <td><?= $row['emp_id'] ?></td>
                             <td><?= $row['name'] ?></td>
                             <td><?= $row['email'] ?></td>
-                            <td><?= $row['password'] ?></td>
+                            <td>*******</td>
                             <td><?= $row['phone'] ?></td>
                             <td><?= $row['gender'] ?></td>
                             <td><?= $row['department_name'] ?? '' ?></td>
@@ -483,7 +483,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label>Password</label>
-                                    <input type="Password" name="Password" id="edit_Password" class="form-control" required>
+                                    <input type="password" name="password" id="edit_Password" class="form-control" required>
                                 </div>
                             </div>
                             <div class="row">
