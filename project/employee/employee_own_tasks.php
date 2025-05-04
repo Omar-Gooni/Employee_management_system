@@ -5,8 +5,8 @@ if (!isset($_SESSION['emp_id'])) {
     exit();
 }
 
-header("Location: ../login/login.php");
 
+include '../connection/db_connect.php';
 $emp_id = $_SESSION['emp_id'];
 
 // Handle status update
