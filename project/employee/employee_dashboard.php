@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['emp_id'])) {
-    header("Location: login.php");
+    header("Location: ../login/login.php");
     exit();
 }
 
-include 'db_connect.php';
+include '../connection/db_connect.php';
 
 // Get employee data
 $employee_id = $_SESSION['emp_id'];
@@ -34,16 +34,16 @@ $recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id OR
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Employee Dashboard" name="description" />
     <meta content="Your Company" name="author" />
-    <link rel="shortcut icon" href="assets/images/favicon.ico">
-    <link rel="stylesheet" href="assets/css/app.min.css">
+    <link rel="shortcut icon" href="../assets/images/favicon.ico">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
     <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
-    <script src="assets/js/vendor.min.js"></script>
-    <script src="assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
+    <link href="../assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
     
     <style>
         .stat-card {
@@ -75,7 +75,7 @@ $recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id OR
         <div class="leftside-menu">
             <a href="employee_dashboard.php" class="logo text-center logo-light">
                 <span class="logo-lg">
-                    <img src="assets/images/logo.png" alt="" height="16">
+                    <img src="../assets/images/logo.png" alt="" height="16">
                 </span>
             </a>
 
@@ -125,7 +125,7 @@ $recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id OR
                         <li class="dropdown notification-list">
                             <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                                 <span class="account-user-avatar">
-                                    <img src="assets/images/users/<?= $employee['profile_pic'] ?? 'avatar-1.jpg' ?>" alt="user-image" class="rounded-circle">
+                                    <img src="../assets/images/users/<?= $employee['profile_pic'] ?? 'avatar-1.jpg' ?>" alt="user-image" class="rounded-circle">
                                 </span>
                                 <span>
                                     <span class="account-user-name"><?= $employee['name'] ?></span>
@@ -248,7 +248,7 @@ $recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id OR
     </div>
 
     <!-- bundle -->
-    <script src="assets/js/vendor.min.js"></script>
-    <script src="assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
 </body>
 </html>

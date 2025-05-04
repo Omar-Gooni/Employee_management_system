@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['emp_id'])) {
-    header("Location: login.php");
+    header("Location: ../login/login.php");
     exit();
 }
 
-include 'db_connect.php';
+include '../connection/db_connect.php';
 
 $emp_id = $_SESSION['emp_id'];
 
@@ -33,28 +33,28 @@ $attendance = $conn->query("
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="assets/images/favicon.ico">
+    <link rel="shortcut icon" href="../assets/images/favicon.ico">
 
-    <link rel="stylesheet" href="assets/css/app.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
 
     <!-- DataTable CSS -->
     <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
 
-    <script src="assets/js/vendor.min.js"></script>
-    <script src="assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- third party css -->
-    <link href="assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- App css -->
-    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
-    <link href="assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
+    <link href="../assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="../assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
+    <link href="../assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
 
     <style>
         /* Attendance Table Font Styling */
@@ -101,10 +101,10 @@ $attendance = $conn->query("
             <!-- LOGO -->
             <a href="index.html" class="logo text-center logo-light">
                 <span class="logo-lg">
-                    <img src="assets/images/logo.png" alt="" height="16">
+                    <img src="../assets/images/logo.png" alt="" height="16">
                 </span>
                 <span class="logo-sm">
-                    <img src="assets/images/logo_sm.png" alt="" height="16">
+                    <img src="../assets/images/logo_sm.png" alt="" height="16">
                 </span>
             </a>
 
@@ -175,7 +175,7 @@ $attendance = $conn->query("
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
                             <span class="account-user-avatar">
-                                <img src="assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
+                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
                             </span>
                             <span>
                                 <span class="account-user-name"><?= $employee['name'] ?></span>
@@ -274,13 +274,13 @@ $attendance = $conn->query("
         <!-- END wrapper -->
 
         <!-- bundle -->
-        <script src="assets/js/vendor.min.js"></script>
-        <script src="assets/js/app.min.js"></script>
+        <script src="../assets/js/vendor.min.js"></script>
+        <script src="../assets/js/app.min.js"></script>
 
         <!-- third party js -->
-        <script src="assets/js/vendor/apexcharts.min.js"></script>
-        <script src="assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
-        <script src="assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+        <script src="../assets/js/vendor/apexcharts.min.js"></script>
+        <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+        <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
         <!-- third party js ends -->
 
         <!-- demo app -->
