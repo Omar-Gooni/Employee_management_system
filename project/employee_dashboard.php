@@ -1,140 +1,254 @@
 <?php
 session_start();
-include 'db_connect.php';
-
 if (!isset($_SESSION['emp_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$emp_id = $_SESSION['emp_id'];
-$name = $_SESSION['name'];
+include 'db_connect.php';
 
-// Attendance records
-$attendance = $conn->query("SELECT * FROM attendance WHERE emp_id = $emp_id");
+// Get employee data
+$employee_id = $_SESSION['emp_id'];
+$employee = $conn->query("SELECT * FROM employees WHERE emp_id = $employee_id")->fetch_assoc();
 
-// Task records
-$tasks = $conn->query("SELECT * FROM employee_task WHERE emp_id = $emp_id");
+// Get employee stats
+$active_tasks = $conn->query("SELECT COUNT(*) as count FROM tasks WHERE emp_id = $employee_id AND status != 'Completed'")->fetch_assoc();
+$completed_tasks = $conn->query("SELECT COUNT(*) as count FROM tasks WHERE emp_id = $employee_id AND status = 'Completed'")->fetch_assoc();
+$attendance = $conn->query("SELECT 
+                           SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present,
+                           SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absent,
+                           SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late
+                           FROM attendance 
+                           WHERE emp_id = $employee_id")->fetch_assoc();
 
-// Handle task status update
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['task_id'], $_POST['status'])) {
-    $task_id = $conn->real_escape_string($_POST['task_id']);
-    $status = $conn->real_escape_string($_POST['status']);
-
-    $conn->query("UPDATE employee_task SET status = '$status' WHERE task_id = $task_id AND emp_id = $emp_id");
-    header("Location: employee_dashboard.php");
-    exit();
-}
+// Get recent tasks
+$recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id ORDER BY end_date ASC LIMIT 5");
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <title>Employee Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Employee Dashboard" name="description" />
+    <meta content="Your Company" name="author" />
+    <link rel="shortcut icon" href="assets/images/favicon.ico">
+    <link rel="stylesheet" href="assets/css/app.min.css">
+    <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script src="assets/js/vendor.min.js"></script>
+    <script src="assets/js/app.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" id="light-style" />
+    
     <style>
-        body {
-            display: flex;
-            min-height: 100vh;
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .sidebar {
-            width: 220px;
-            background-color: #343a40;
-            padding-top: 30px;
-            color: white;
+        .stat-card i {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
-        .sidebar a {
-            color: white;
-            padding: 12px 20px;
-            display: block;
-            text-decoration: none;
+        .stat-card h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
         }
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-        .main {
-            flex: 1;
-            padding: 30px;
-            background-color: #f8f9fa;
+        .task-item {
+            border-left: 3px solid #0d6efd;
+            padding-left: 10px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
-<body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-    <h4 class="text-center">Employee Panel</h4>
-    <a href="employee_dashboard.php">Dashboard</a>
-    <a href="logout.php">Logout</a>
-</div>
+<body class="loading" data-layout-config='{"leftSideBarTheme":"dark","layoutBoxed":false, "leftSidebarCondensed":false, "leftSidebarScrollable":false,"darkMode":false, "showRightSidebarOnStart": true}'>
+    <div class="wrapper">
+        <!-- Left Sidebar - Same as admin but simplified -->
+        <div class="leftside-menu">
+            <a href="employee_dashboard.php" class="logo text-center logo-light">
+                <span class="logo-lg">
+                    <img src="assets/images/logo.png" alt="" height="16">
+                </span>
+            </a>
 
-<!-- Main Content -->
-<div class="main">
-    <h2 class="mb-4">Welcome, <?php echo htmlspecialchars($name); ?></h2>
+            <ul class="side-nav">
+                <li class="side-nav-item">
+                    <a href="employee_dashboard.php" class="side-nav-link">
+                        <i class="fa-solid fa-house text-white"></i>
+                        <span class="text-white">Dashboard</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="employee_own_tasks.php" class="side-nav-link">
+                        <i class="fa-solid fa-tasks text-white"></i>
+                        <span class="text-white">My Tasks</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="employee_attendance.php" class="side-nav-link">
+                        <i class="fa-solid fa-clipboard-user text-white"></i>
+                        <span class="text-white">My Attendance</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="employee_department.php" class="side-nav-link">
+                        <i class="fa-solid fa-building text-white"></i>
+                        <span class="text-white">Departments</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="logout.php" class="side-nav-link">
+                        <i class="mdi mdi-logout me-1 text-white"></i>
+                        <span class="text-white">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-    <!-- Attendance Section -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">My Attendance</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Time In</th>
-                        <th>Time Out</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = $attendance->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['date']) ?></td>
-                            <td><?= htmlspecialchars($row['time_in']) ?></td>
-                            <td><?= htmlspecialchars($row['time_out']) ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+        <div class="content-page">
+            <div class="content">
+                <!-- Topbar - Simplified for employee -->
+                <div class="navbar-custom">
+                    <ul class="list-unstyled topbar-menu float-end mb-0">
+                        <li class="dropdown notification-list">
+                            <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                                <span class="account-user-avatar">
+                                    <img src="assets/images/users/<?= $employee['profile_pic'] ?? 'avatar-1.jpg' ?>" alt="user-image" class="rounded-circle">
+                                </span>
+                                <span>
+                                    <span class="account-user-name"><?= $employee['name'] ?></span>
+                                    <span class="account-position"><?= $employee['position'] ?></span>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                    <button class="button-menu-mobile open-left">
+                        <i class="mdi mdi-menu"></i>
+                    </button>
+                </div>
+
+                <!-- Start Content-->
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="page-title-box">
+                                <h4 class="page-title">Employee Dashboard</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card stat-card bg-primary text-white">
+                                <div class="card-body">
+                                    <i class="fas fa-tasks"></i>
+                                    <h3><?= $active_tasks['count'] ?? 0 ?></h3>
+                                    <p>Active Tasks</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stat-card bg-success text-white">
+                                <div class="card-body">
+                                    <i class="fas fa-check-circle"></i>
+                                    <h3><?= $completed_tasks['count'] ?? 0 ?></h3>
+                                    <p>Completed Tasks</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stat-card bg-info text-white">
+                                <div class="card-body">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <h3><?= $attendance['present'] ?? 0 ?></h3>
+                                    <p>Days Present</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Summary -->
+                    <div class="row mt-3">
+                        <div class="col-xl-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="header-title mb-3">My Attendance Summary</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-hover mb-0">
+                                            <tbody>
+                                                <tr>
+                                                    <td><i class="fas fa-check-circle text-success"></i> Present</td>
+                                                    <td class="text-end"><?= $attendance['present'] ?? 0 ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="fas fa-times-circle text-danger"></i> Absent</td>
+                                                    <td class="text-end"><?= $attendance['absent'] ?? 0 ?></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="fas fa-clock text-warning"></i> Late</td>
+                                                    <td class="text-end"><?= $attendance['late'] ?? 0 ?></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Tasks -->
+                        <div class="col-xl-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="header-title mb-3">My Recent Tasks</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-hover mb-0">
+                                            <tbody>
+                                                <?php while ($task = $recent_tasks->fetch_assoc()): ?>
+                                                    <tr>
+                                                        <td>
+                                                            <h5 class="font-14 mb-1"><?= $task['title'] ?></h5>
+                                                            <span class="text-muted font-13">Due: <?= date('M d, Y', strtotime($task['end_date'])) ?></span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <span class="badge bg-soft-<?= 
+                                                                $task['status'] == 'Completed' ? 'success' : 
+                                                                ($task['status'] == 'In Progress' ? 'primary' : 'warning') 
+                                                            ?> text-<?= 
+                                                                $task['status'] == 'Completed' ? 'success' : 
+                                                                ($task['status'] == 'In Progress' ? 'primary' : 'warning') 
+                                                            ?>">
+                                                                <?= $task['status'] ?>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                <?php endwhile; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Task Section -->
-    <div class="card">
-        <div class="card-header bg-success text-white">My Tasks</div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Task</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($task = $tasks->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($task['task_name']) ?></td>
-                            <td><?= htmlspecialchars($task['description']) ?></td>
-                            <td><?= htmlspecialchars($task['status']) ?></td>
-                            <td>
-                                <form method="POST" class="d-flex">
-                                    <input type="hidden" name="task_id" value="<?= $task['task_id'] ?>">
-                                    <select name="status" class="form-select me-2" required>
-                                        <option value="Pending" <?= $task['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                        <option value="In Progress" <?= $task['status'] == 'In Progress' ? 'selected' : '' ?>>In Progress</option>
-                                        <option value="Completed" <?= $task['status'] == 'Completed' ? 'selected' : '' ?>>Completed</option>
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
+    <!-- bundle -->
+    <script src="assets/js/vendor.min.js"></script>
+    <script src="assets/js/app.min.js"></script>
 </body>
 </html>

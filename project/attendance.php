@@ -54,9 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Fetch all attendance records with employee names
+// Current query:
 $attendance = $conn->query("SELECT a.*, e.name as employee_name 
                            FROM attendance a 
                            JOIN employees e ON a.emp_id = e.emp_id");
+
+// Add error checking:
+if (!$attendance) {
+    die("Query failed: " . $conn->error);
+}
 
 // Fetch employees for dropdown
 $employees = $conn->query("SELECT * FROM employees");
