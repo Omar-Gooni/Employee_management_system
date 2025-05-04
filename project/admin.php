@@ -111,7 +111,7 @@ $result = $conn->query("SELECT * FROM admin");
         <div class="leftside-menu">
 
             <!-- LOGO -->
-            <a href="index.html" class="logo text-center logo-light">
+            <a href="dashboard.php" class="logo text-center logo-light">
                 <span class="logo-lg">
                     <img src="assets/images/logo.png" alt="" height="16">
                 </span>
