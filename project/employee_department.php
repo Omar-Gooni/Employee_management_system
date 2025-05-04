@@ -103,7 +103,7 @@ $result = $conn->query("SELECT * FROM departments");
                 </li>
                 <br>
                 <li class="side-nav-item">
-                    <a href="attendance.php" class="side-nav-link">
+                    <a href="employee_attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">My Attendance</span>
                     </a>

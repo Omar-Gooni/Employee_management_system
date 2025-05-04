@@ -26,11 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($is_admin) {
             $_SESSION['admin_id'] = $user['admin_id'];
             $_SESSION['admin_name'] = $user['name'];
+            $_SESSION['role'] = $user['role'];
             $_SESSION['admin_email'] = $user['email'];
             header("Location: dashboard.php");
         } else {
             $_SESSION['emp_id'] = $user['emp_id'];
             $_SESSION['name'] = $user['name'];
+            $_SESSION['position'] = $user['position'];
             $_SESSION['email'] = $user['email'];
             header("Location: employee_dashboard.php");
         }

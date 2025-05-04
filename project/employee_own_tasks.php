@@ -9,26 +9,33 @@ include 'db_connect.php';
 
 $emp_id = $_SESSION['emp_id'];
 
-// Fetch employee details
-$employee = $conn->query("SELECT * FROM employees WHERE emp_id = $emp_id")->fetch_assoc();
+// Handle status update
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
+    $employee_task_id = intval($_POST['employee_task_id']);
+    $new_status = $conn->real_escape_string($_POST['status']);
+    $conn->query("UPDATE employee_task SET status = '$new_status' WHERE employee_task_id = $employee_task_id AND emp_id = $emp_id");
+}
 
-// Fetch attendance records for this employee only
-$attendance = $conn->query("
-    SELECT a.*, e.name AS employee_name 
-    FROM attendance a 
-    JOIN employees e ON a.emp_id = e.emp_id 
-    WHERE a.emp_id = $emp_id 
-    ORDER BY a.date DESC
-");
+// Fetch tasks assigned to the logged-in employee
+$query = "
+    SELECT et.employee_task_id, t.title, t.description, t.start_date, t.end_date,
+           et.assigned_date, et.status
+    FROM employee_task et
+    JOIN tasks t ON et.task_id = t.task_id
+    WHERE et.emp_id = $emp_id
+    ORDER BY et.assigned_date DESC
+";
 
+$result = $conn->query($query);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <title>My Attendance</title>
+    <title>My Task</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -58,15 +65,15 @@ $attendance = $conn->query("
 
     <style>
         /* Attendance Table Font Styling */
-        #attendanceTable thead th {
+        #taskTable thead th {
             font-size: 18px;
-            font-weight:bolder !important;
+            font-weight: bolder !important;
             color: #000000;
         }
 
-        #attendanceTable tbody td {
+        #taskTable tbody td {
             font-size: 16px;
-            color:rgb(19, 19, 19);
+            color: rgb(19, 19, 19);
         }
 
         /* Updated Table Styling */
@@ -84,7 +91,7 @@ $attendance = $conn->query("
         #adminTable th {
             padding: 8px 12px;
         }
-        
+
         .welcome-message {
             font-size: 18px;
             font-weight: bold;
@@ -170,7 +177,7 @@ $attendance = $conn->query("
                             </form>
                         </div>
                     </li>
-                    
+
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
@@ -178,8 +185,8 @@ $attendance = $conn->query("
                                 <img src="assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
                             </span>
                             <span>
-                                <span class="account-user-name"><?= $employee['name'] ?></span>
-                                <span class="account-position">Employee</span>
+                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['name']); ?></span>
+                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['position']); ?></span>
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">
@@ -232,40 +239,55 @@ $attendance = $conn->query("
                                     </div>
                                 </form>
                             </div>
-                            <h4 class="page-title">My Attendance</h4>
+                            <h4 class="page-title">My Task</h4>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="welcome-message">
-                    Welcome, <?= $employee['name'] ?>! Here's your attendance record.
+                    Welcome, ! <?php echo htmlspecialchars($_SESSION['name']); ?> Here's your Task record.
                 </div>
+                <?php
+
+                ?>
 
                 <!-- Attendance Table -->
-                <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
+                <table id="taskTable" class="table table-bordered dt-responsive nowrap w-100">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Assigned</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = $attendance->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($row['employee_name']) ?></td>
-                                <td><?= $row['date'] ?></td>
-                                <td><?= $row['check_in'] ?: '--' ?></td>
-                                <td><?= $row['check_out'] ?: '--' ?></td>
-                                <td class="status-<?= strtolower(str_replace(' ', '-', $row['status'])) ?>">
-                                    <?= $row['status'] ?>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
+                    <?php while ($row = $result->fetch_assoc()) { ?>
+        <tr>
+            <form method="post">
+                <input type="hidden" name="employee_task_id" value="<?php echo $row['employee_task_id']; ?>">
+                <td><?php echo htmlspecialchars($row['title']); ?></td>
+                <td><?php echo htmlspecialchars($row['description']); ?></td>
+                <td><?php echo $row['start_date']; ?></td>
+                <td><?php echo $row['end_date']; ?></td>
+                <td><?php echo $row['assigned_date']; ?></td>
+                <td>
+                    <select name="status">
+                        <option value="Assigned" <?php if ($row['status'] == 'Assigned') echo 'selected'; ?>>Assigned</option>
+                        <option value="In Progress" <?php if ($row['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
+                        <option value="Completed" <?php if ($row['status'] == 'Completed') echo 'selected'; ?>>Completed</option>
+                    </select>
+                </td>
+                <td><button type="submit" name="update_status">Update</button></td>
+            </form>
+        </tr>
+        <?php } ?>
                     </tbody>
                 </table>
+
             </div>
             <!-- ============================================================== -->
             <!-- End Page content -->
@@ -289,11 +311,14 @@ $attendance = $conn->query("
 
         <script>
             $(document).ready(function() {
-                $('#attendanceTable').DataTable({
+                $('#taskTable').DataTable({
                     responsive: true,
-                    order: [[1, 'desc']] // Default sort by date descending
+                    order: [
+                        [1, 'desc']
+                    ] // Default sort by date descending
                 });
             });
         </script>
 </body>
+
 </html>
