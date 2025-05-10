@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL'; // Handle NULL case
-    
+
         $status = $_POST['status'];
         $password = $_POST['password'];
         $image_name = $_FILES['image']['name'];
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL';
-      
+
         $status = $_POST['status'];
         $password = $_POST['password'];
 
@@ -368,7 +368,7 @@ $departments = $conn->query("SELECT * FROM departments");
 
                         <th>Name</th>
                         <th>Email</th>
-                      
+
                         <th>Phone</th>
                         <th>Gender</th>
                         <th>Department</th>
@@ -386,14 +386,25 @@ $departments = $conn->query("SELECT * FROM departments");
                             <td><?= $row['phone'] ?></td>
                             <td><?= $row['gender'] ?></td>
                             <td><?= $row['department_name'] ?? '' ?></td>
-                            
+
 
                             <td><?= $row['status'] ?></td>
                             <td>
                                 <img class="emp_img" src="../uploads/<?= $row['image'] ?>" alt="emp Image" style="width:30px; height:30px; border-radius: 50%;">
                             </td>
                             <td style="white-space: nowrap;">
-                                <button class="btn btn-primary btn-sm editBtn d-inline-block" data-image="<?= $row['image'] ?>">
+                                <button
+                                    class="btn btn-primary btn-sm editBtn"
+                                    data-emp_id="<?= $row['emp_id'] ?>"
+                                    data-name="<?= $row['name'] ?>"
+                                    data-email="<?= $row['email'] ?>"
+                                    data-phone="<?= $row['phone'] ?>"
+                                    data-password="<?= $row['password'] ?>"
+                                    data-department_id="<?= $row['department_id'] ?>"
+                                    data-status="<?= $row['status'] ?>"
+                                    data-image="<?= $row['image'] ?>"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editEmployeeModal">
                                     <i class="fas fa-edit"></i>
                                 </button>
 
@@ -402,11 +413,11 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <i class="fas fa-trash"></i>
                                 </button>
                                 <form action="id_card_emp.php" method="POST" target="_blank" style="display: inline;">
-                                        <input type="hidden" name="id" value="<?= $row['emp_id'] ?>">
-                                        <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                    </form>
+                                    <input type="hidden" name="id" value="<?= $row['emp_id'] ?>">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </form>
                             </td>
 
                         </tr>
@@ -465,7 +476,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                              
+
                             </div>
                             <div class="row">
 
@@ -550,7 +561,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                            
+
                             </div>
                             <div class="row">
 
@@ -650,71 +661,16 @@ $departments = $conn->query("SELECT * FROM departments");
 
 
         // Edit Button Click Handler
-        document.querySelectorAll('.editBtn').forEach(button => {
-            button.addEventListener('click', function(event) {
-                // Ensure we always start from the button, even if <i> was clicked
-                const btn = event.currentTarget;
-                const row = btn.closest('tr');
-
-                if (!row || row.cells.length < 12) {
-                    console.error('Row or cells not found.');
-                    return;
-                }
-
-                // Extract data from the row safely
-                const empId = row.cells[0]?.textContent.trim() || '';
-                const name = row.cells[1]?.textContent.trim() || '';
-                const email = row.cells[2]?.textContent.trim() || '';
-                const password = row.cells[3]?.textContent.trim() || '';
-                const phone = row.cells[4]?.textContent.trim() || '';
-                const gender = row.cells[5]?.textContent.trim() || '';
-                const department = row.cells[6]?.textContent.trim() || '';
-                
-                const dateJoined = row.cells[7]?.textContent.trim() || '';
-                const status = row.cells[8]?.textContent.trim() || '';
-                const image = row.cells[9]?.textContent.trim() || '';
-                const current_image = row.cells[10]?.textContent.trim() || '';
-
-                // Find the department ID from the dropdown options
-                let departmentId = '';
-                const departmentOptions = document.querySelectorAll('#edit_department_id option');
-                departmentOptions.forEach(option => {
-                    if (option.textContent.trim() === department) {
-                        departmentId = option.value;
-                    }
-                });
-
-                // Populate the modal fields
-                document.getElementById('edit_emp_id').value = empId;
-                document.getElementById('edit_name').value = name;
-                document.getElementById('edit_email').value = email;
-                document.getElementById('edit_Password').value = password;
-                document.getElementById('edit_phone').value = phone;
-                document.getElementById('edit_department_id').value = departmentId;
-         
-                document.getElementById('edit_status').value = status;
-
-                // Set the gender radio buttons
-                const genderMale = document.getElementById('genderMale');
-                const genderFemale = document.getElementById('edit_gender'); // This should be renamed to 'genderFemale' in HTML for clarity
-
-                if (gender === 'Male') {
-                    genderMale.checked = true;
-                } else if (gender === 'Female') {
-                    genderFemale.checked = true;
-                } else {
-                    genderMale.checked = false;
-                    genderFemale.checked = false;
-                }
-
-                // Set current image
-                const currentImageEl = document.getElementById("current-image");
-                const datasetImage = btn.dataset.image || image || current_image;
-                currentImageEl.src = "../uploads/" + datasetImage;
-
-                // Show the modal
-                const editModal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
-                editModal.show();
+        document.querySelectorAll(".editBtn").forEach(button => {
+            button.addEventListener("click", () => {
+                document.getElementById("edit_emp_id").value = button.dataset.emp_id;
+                document.getElementById("edit_name").value = button.dataset.name;
+                document.getElementById("edit_email").value = button.dataset.email;
+                document.getElementById("edit_Password").value = button.dataset.password;
+                document.getElementById("edit_phone").value = button.dataset.phone;
+                document.getElementById("edit_department_id").value = button.dataset.department_id;
+                document.getElementById("edit_status").value = button.dataset.status;
+                document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
             });
         });
     </script>
