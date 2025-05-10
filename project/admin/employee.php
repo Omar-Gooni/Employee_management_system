@@ -368,7 +368,7 @@ $departments = $conn->query("SELECT * FROM departments");
 
                         <th>Name</th>
                         <th>Email</th>
-
+                        <th>Password</th>
                         <th>Phone</th>
                         <th>Gender</th>
                         <th>Department</th>
@@ -383,6 +383,7 @@ $departments = $conn->query("SELECT * FROM departments");
 
                             <td><?= $row['name'] ?></td>
                             <td><?= $row['email'] ?></td>
+                            <td><?= $row['password'] ?></td>
                             <td><?= $row['phone'] ?></td>
                             <td><?= $row['gender'] ?></td>
                             <td><?= $row['department_name'] ?? '' ?></td>

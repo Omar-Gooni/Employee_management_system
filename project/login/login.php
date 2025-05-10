@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['name'] = $user['name'];
             $_SESSION['position'] = $user['position'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['image'] = $user['image'];
             header("Location: ../employee/employee_dashboard.php");
         }
         exit();

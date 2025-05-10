@@ -139,9 +139,11 @@ $result = $conn->query("SELECT * FROM departments");
                     <ul class="list-unstyled topbar-menu float-end mb-0">
                         <li class="dropdown notification-list">
                             <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                            <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
                                 <span class="account-user-avatar">
-                                    <img src="../assets/images/users/<?= $employee['profile_pic'] ?? 'avatar-1.jpg' ?>" alt="user-image" class="rounded-circle">
+                                    <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
                                 </span>
+                            <?php endif; ?>
                                 <span>
                                     <span class="account-user-name"><?= $employee['name'] ?></span>
                                     <span class="account-position"><?= $employee['position'] ?></span>
