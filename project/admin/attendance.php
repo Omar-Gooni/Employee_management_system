@@ -107,7 +107,7 @@ $employees = $conn->query("SELECT * FROM employees");
         #attendanceTable thead th {
             font-size: 18px;
             /* Larger font for headers */
-            font-weight:bolder !important;
+            font-weight: bolder !important;
             /* Bold headers */
             color: #000000;
         }
@@ -115,9 +115,9 @@ $employees = $conn->query("SELECT * FROM employees");
         #attendanceTable tbody td {
             font-size: 16px;
             /* Slightly smaller for body */
-           
+
             /* Bold body text */
-            color:rgb(19, 19, 19);
+            color: rgb(19, 19, 19);
         }
 
         /* Updated Table Styling */
@@ -242,24 +242,26 @@ $employees = $conn->query("SELECT * FROM employees");
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
-                            <span class="account-user-avatar">
-                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
-                            </span>
+                            <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
+                                <span class="account-user-avatar">
+                                    <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
+                                </span>
+                            <?php endif; ?>
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -518,6 +520,8 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
         <script>
+            document.querySelectorAll('.editAttendanceBtn').forEach(btn => console.log(btn));
+
             $(document).ready(function() {
                 $('#attendanceTable').DataTable({
                     responsive: true,
@@ -556,12 +560,10 @@ $employees = $conn->query("SELECT * FROM employees");
                     const row = this.closest('tr');
                     const attendanceId = row.cells[0].textContent;
                     const employeeName = row.cells[1].textContent;
-                    const date = row.cells[2].textContent;
                     const checkIn = row.cells[3].textContent;
                     const checkOut = row.cells[4].textContent;
                     const status = row.cells[5].textContent.trim();
 
-                    // Find the employee ID (this assumes employee name is unique)
                     let empId = '';
                     const employeeOptions = document.querySelectorAll('#edit_emp_id option');
                     employeeOptions.forEach(option => {
@@ -570,15 +572,12 @@ $employees = $conn->query("SELECT * FROM employees");
                         }
                     });
 
-                    // Populate the edit modal
                     document.getElementById('edit_attendance_id').value = attendanceId;
                     document.getElementById('edit_emp_id').value = empId;
-                    document.getElementById('edit_date').value = date;
-                    document.getElementById('edit_check_in').value = checkIn !== '--' ? checkIn : '';
-                    document.getElementById('edit_check_out').value = checkOut !== '--' ? checkOut : '';
+                    document.getElementById('edit_check_in').value = (checkIn === '--') ? '' : checkIn;
+                    document.getElementById('edit_check_out').value = (checkOut === '--') ? '' : checkOut;
                     document.getElementById('edit_status').value = status;
 
-                    // Show the modal
                     const editModal = new bootstrap.Modal(document.getElementById('editAttendanceModal'));
                     editModal.show();
                 });

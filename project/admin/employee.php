@@ -22,14 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL'; // Handle NULL case
-        $position = $_POST['position'];
+    
         $status = $_POST['status'];
         $password = $_POST['password'];
+        $image_name = $_FILES['image']['name'];
+        $image_tmp = $_FILES['image']['tmp_name'];
+        $image_path = '../uploads/' . $image_name;
+        move_uploaded_file($image_tmp, $image_path);
 
-        $query = "INSERT INTO employees (name, email, phone, gender, department_id, position, status, password) 
-                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$position', '$status' , '$password')";
+
+        $query = "INSERT INTO employees (name, email, phone, gender, department_id, status, password , image) 
+                  VALUES ('$name', '$email', '$phone', '$gender', $department_id, '$status' , '$password' , '$image_name')";
         $conn->query($query);
     }
+
 
     // Update Employee
     if (isset($_POST['update_employee'])) {
@@ -39,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL';
-        $position = $_POST['position'];
+      
         $status = $_POST['status'];
         $password = $_POST['password'];
 
@@ -49,10 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               phone='$phone', 
               gender='$gender', 
               department_id=$department_id, 
-              position='$position',  
+           
               status='$status',
-              password='$password'
-              WHERE emp_id=$id";
+              password='$password'";
+
+        if (!empty($_FILES['image']['name'])) {
+            $image_name = $_FILES['image']['name'];
+            $image_tmp = $_FILES['image']['tmp_name'];
+            $image_path = '../uploads/' . $image_name;
+            move_uploaded_file($image_tmp, $image_path);
+            $query .= ", image='$image_name'";
+        }
+
+        $query .= " WHERE emp_id=$id";
         $conn->query($query);
     }
 
@@ -226,24 +241,26 @@ $departments = $conn->query("SELECT * FROM departments");
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
-                            <span class="account-user-avatar">
-                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
-                            </span>
+                            <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
+                                <span class="account-user-avatar">
+                                    <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
+                                </span>
+                            <?php endif; ?>
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -348,38 +365,48 @@ $departments = $conn->query("SELECT * FROM departments");
             <table id="employeeTable" class="table table-bordered dt-responsive nowrap w-100">
                 <thead>
                     <tr>
-                        <th>ID</th>
+
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Password</th>
+                      
                         <th>Phone</th>
                         <th>Gender</th>
                         <th>Department</th>
-                        <th>Position</th>
                         <th>Status</th>
+                        <th>Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($row = $employees->fetch_assoc()): ?>
                         <tr>
-                            <td><?= $row['emp_id'] ?></td>
+
                             <td><?= $row['name'] ?></td>
                             <td><?= $row['email'] ?></td>
-                            <td>*******</td>
                             <td><?= $row['phone'] ?></td>
                             <td><?= $row['gender'] ?></td>
                             <td><?= $row['department_name'] ?? '' ?></td>
-                            <td><?= $row['position'] ?></td>
+                            
 
                             <td><?= $row['status'] ?></td>
+                            <td>
+                                <img class="emp_img" src="../uploads/<?= $row['image'] ?>" alt="emp Image" style="width:30px; height:30px; border-radius: 50%;">
+                            </td>
                             <td style="white-space: nowrap;">
-                                <button class="btn btn-primary btn-sm editBtn d-inline-block">
-                                    <i class="fas fa-edit"></i> Edit
+                                <button class="btn btn-primary btn-sm editBtn d-inline-block" data-image="<?= $row['image'] ?>">
+                                    <i class="fas fa-edit"></i>
                                 </button>
+
+
                                 <button class="btn btn-danger btn-sm deleteBtn d-inline-block" data-id="<?= $row['emp_id'] ?>">
-                                    Delete
+                                    <i class="fas fa-trash"></i>
                                 </button>
+                                <form action="id_card_emp.php" method="POST" target="_blank" style="display: inline;">
+                                        <input type="hidden" name="id" value="<?= $row['emp_id'] ?>">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </form>
                             </td>
 
                         </tr>
@@ -390,7 +417,7 @@ $departments = $conn->query("SELECT * FROM departments");
             <!-- Add Admin Modal -->
             <div class="modal fade" id="addEmployeeModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
+                    <form method="POST" class="modal-content" enctype="multipart/form-data">
                         <div class="modal-header">
                             <h5 class="modal-title">Add New Employee</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -438,10 +465,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>Position</label>
-                                    <input type="text" name="position" class="form-control" required>
-                                </div>
+                              
                             </div>
                             <div class="row">
 
@@ -453,6 +477,15 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <option value="On Leave">On Leave</option>
                                     </select>
                                 </div>
+
+                            </div>
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+                                    <label>image</label>
+                                    <input type="file" name="image" class="form-control mb-2" accept="image/*" required>
+                                </div>
+
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -465,7 +498,7 @@ $departments = $conn->query("SELECT * FROM departments");
             <!-- Edit Employee Modal -->
             <div class="modal fade" id="editEmployeeModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
+                    <form method="POST" class="modal-content" enctype="multipart/form-data">
                         <input type="hidden" name="emp_id" id="edit_emp_id">
                         <div class="modal-header">
                             <h5 class="modal-title">Edit Employee</h5>
@@ -498,7 +531,8 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <label class="form-check-label" for="genderMale">Male</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="edit_gender" value="Female">
+                                        <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="Female">
+
                                         <label class="form-check-label" for="genderFemale">Female</label>
                                     </div>
                                 </div>
@@ -516,13 +550,10 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <?php endwhile; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label>Position</label>
-                                    <input type="text" name="position" id="edit_position" class="form-control" required>
-                                </div>
+                            
                             </div>
                             <div class="row">
-                               
+
                                 <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" id="edit_status" class="form-select" required>
@@ -530,6 +561,16 @@ $departments = $conn->query("SELECT * FROM departments");
                                         <option value="Inactive">Inactive</option>
                                         <option value="On Leave">On Leave</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label>image</label>
+                                        <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:30px; height:30px; border-radius: 50%;">
+                                        <input type="file" name="image" id="edit_image" class="form-control mb-2" accept="image/*" required>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -610,42 +651,66 @@ $departments = $conn->query("SELECT * FROM departments");
 
         // Edit Button Click Handler
         document.querySelectorAll('.editBtn').forEach(button => {
-            button.addEventListener('click', function() {
-                // Get the row that contains the clicked button
-                const row = this.closest('tr');
+            button.addEventListener('click', function(event) {
+                // Ensure we always start from the button, even if <i> was clicked
+                const btn = event.currentTarget;
+                const row = btn.closest('tr');
 
-                // Extract data from the row
-                const empId = row.cells[0].textContent;
-                const name = row.cells[1].textContent;
-                const email = row.cells[2].textContent;
-                const password = row.cells[3].textContent;   
-                const phone = row.cells[4].textContent;
-                const gender = row.cells[5].textContent;
-                const department = row.cells[6].textContent;
-                const position = row.cells[7].textContent;
-                const dateJoined = row.cells[8].textContent;
-                const status = row.cells[9].textContent;
+                if (!row || row.cells.length < 12) {
+                    console.error('Row or cells not found.');
+                    return;
+                }
 
-                // Find the department ID (this assumes department name is unique)
+                // Extract data from the row safely
+                const empId = row.cells[0]?.textContent.trim() || '';
+                const name = row.cells[1]?.textContent.trim() || '';
+                const email = row.cells[2]?.textContent.trim() || '';
+                const password = row.cells[3]?.textContent.trim() || '';
+                const phone = row.cells[4]?.textContent.trim() || '';
+                const gender = row.cells[5]?.textContent.trim() || '';
+                const department = row.cells[6]?.textContent.trim() || '';
+                
+                const dateJoined = row.cells[7]?.textContent.trim() || '';
+                const status = row.cells[8]?.textContent.trim() || '';
+                const image = row.cells[9]?.textContent.trim() || '';
+                const current_image = row.cells[10]?.textContent.trim() || '';
+
+                // Find the department ID from the dropdown options
                 let departmentId = '';
                 const departmentOptions = document.querySelectorAll('#edit_department_id option');
                 departmentOptions.forEach(option => {
-                    if (option.textContent === department) {
+                    if (option.textContent.trim() === department) {
                         departmentId = option.value;
                     }
                 });
 
-                // Populate the edit modal
+                // Populate the modal fields
                 document.getElementById('edit_emp_id').value = empId;
                 document.getElementById('edit_name').value = name;
                 document.getElementById('edit_email').value = email;
                 document.getElementById('edit_Password').value = password;
                 document.getElementById('edit_phone').value = phone;
-                document.getElementById('edit_gender').value = gender;
                 document.getElementById('edit_department_id').value = departmentId;
-                document.getElementById('edit_position').value = position;
          
                 document.getElementById('edit_status').value = status;
+
+                // Set the gender radio buttons
+                const genderMale = document.getElementById('genderMale');
+                const genderFemale = document.getElementById('edit_gender'); // This should be renamed to 'genderFemale' in HTML for clarity
+
+                if (gender === 'Male') {
+                    genderMale.checked = true;
+                } else if (gender === 'Female') {
+                    genderFemale.checked = true;
+                } else {
+                    genderMale.checked = false;
+                    genderFemale.checked = false;
+                }
+
+                // Set current image
+                const currentImageEl = document.getElementById("current-image");
+                const datasetImage = btn.dataset.image || image || current_image;
+                currentImageEl.src = "../uploads/" + datasetImage;
 
                 // Show the modal
                 const editModal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));

@@ -196,9 +196,11 @@ $result = $conn->query("SELECT * FROM departments");
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
-                            <span class="account-user-avatar">
-                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
-                            </span>
+                            <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
+                                <span class="account-user-avatar">
+                                    <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
+                                </span>
+                            <?php endif; ?>
                             <span>
                             <span>
                                 <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>

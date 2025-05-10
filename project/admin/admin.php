@@ -18,8 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $name = $_POST['name'];
         $email = $_POST['email'];
         $password = $_POST['password'];
-        $conn->query("INSERT INTO admin (name, email, password) VALUES ('$name', '$email', '$password')");
+
+        $image_name = $_FILES['image']['name'];
+        $image_tmp = $_FILES['image']['tmp_name'];
+        $image_path = '../uploads/' . $image_name;
+        move_uploaded_file($image_tmp, $image_path);
+
+        $conn->query("INSERT INTO admin (name, email, password, image) 
+                      VALUES ('$name', '$email', '$password', '$image_name')");
     }
+
 
     // Update Admin
     if (isset($_POST['update_admin'])) {
@@ -27,9 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $name = $_POST['name'];
         $email = $_POST['email'];
         $password = $_POST['password'];
-        $conn->query("UPDATE admin SET name='$name', email='$email', 
-        password='$password' WHERE admin_id=$id");
+
+        $query = "UPDATE admin SET name='$name', email='$email', password='$password'";
+
+        if (!empty($_FILES['image']['name'])) {
+            $image_name = $_FILES['image']['name'];
+            $image_tmp = $_FILES['image']['tmp_name'];
+            $image_path = '../uploads/' . $image_name;
+            move_uploaded_file($image_tmp, $image_path);
+            $query .= ", image='$image_name'";
+        }
+
+        $query .= " WHERE admin_id=$id";
+        $conn->query($query);
     }
+
 
     // Delete Admin
     if (isset($_POST['delete_admin'])) {
@@ -99,6 +119,14 @@ $result = $conn->query("SELECT * FROM admin");
         #adminTable th {
             padding: 8px 12px;
             /* Better spacing */
+        }
+
+        .admin_img {
+            width: 10px;
+            height: 0px;
+            border-radius: 50%;
+            padding: auto;
+
         }
     </style>
 
@@ -202,24 +230,29 @@ $result = $conn->query("SELECT * FROM admin");
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
-                            <span class="account-user-avatar">
-                                <img src="../assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
-                            </span>
+                            <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
+                                <span class="account-user-avatar">
+                                    <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
+                                </span>
+                            <?php endif; ?>
+
+
+
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -324,6 +357,7 @@ $result = $conn->query("SELECT * FROM admin");
                             <th>Name</th>
                             <th>Email</th>
                             <th>Password</th>
+                            <th>Image</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -335,28 +369,42 @@ $result = $conn->query("SELECT * FROM admin");
                                 <td><?= $row['email'] ?></td>
                                 <td><?= $row['password'] ?></td>
                                 <td>
+                                    <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px;">
+                                </td>
+                                <td>
                                     <button class="btn btn-primary btn-sm editBtn"
                                         data-id="<?= $row['admin_id'] ?>"
                                         data-name="<?= $row['name'] ?>"
                                         data-email="<?= $row['email'] ?>"
                                         data-password="<?= $row['password'] ?>"
+                                        data-image="<?= $row['image'] ?>"
                                         data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                        Edit
+                                        <i class="fas fa-edit"></i>
                                     </button>
                                     <button class="btn btn-danger btn-sm deleteBtn"
                                         data-id="<?= $row['admin_id'] ?>">
-                                        Delete
+                                        <i class="fas fa-trash"></i>
                                     </button>
+                                    <form action="id_card_admin.php" method="POST" target="_blank" style="display: inline;">
+                                        <input type="hidden" name="id" value="<?= $row['admin_id'] ?>">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </form>
+
+
+
                                 </td>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
                 </table>
 
+
                 <!-- Add Admin Modal -->
                 <div class="modal fade" id="addAdminModal" tabindex="-1">
                     <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
+                        <form method="POST" enctype="multipart/form-data" class="modal-content">
                             <div class="modal-header">
                                 <h5>Add Admin</h5>
                             </div>
@@ -364,6 +412,8 @@ $result = $conn->query("SELECT * FROM admin");
                                 <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
                                 <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
                                 <input type="password" name="password" class="form-control" placeholder="Password" required>
+                                <input type="file" name="image" class="form-control mb-2" accept="image/*" required>
+
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -376,7 +426,7 @@ $result = $conn->query("SELECT * FROM admin");
                 <!-- Edit Admin Modal -->
                 <div class="modal fade" id="editAdminModal" tabindex="-1">
                     <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
+                        <form method="POST" enctype="multipart/form-data" class="modal-content">
                             <div class="modal-header">
                                 <h5>Edit Admin</h5>
                             </div>
@@ -385,6 +435,9 @@ $result = $conn->query("SELECT * FROM admin");
                                 <input type="text" name="name" id="edit-name" class="form-control mb-2" required>
                                 <input type="email" name="email" id="edit-email" class="form-control mb-2" required>
                                 <input type="password" name="password" id="edit-password" class="form-control" required>
+                                <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:40px; height:40px; border-radius: 50%;">
+                                <input type="file" name="image" class="form-control mb-2" accept="image/*">
+
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -413,6 +466,8 @@ $result = $conn->query("SELECT * FROM admin");
                             document.getElementById("edit-name").value = button.dataset.name;
                             document.getElementById("edit-email").value = button.dataset.email;
                             document.getElementById("edit-password").value = button.dataset.password;
+                            document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
+
                         });
                     });
 
