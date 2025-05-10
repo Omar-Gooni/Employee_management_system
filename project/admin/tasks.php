@@ -9,26 +9,30 @@ if (!isset($_SESSION['admin_id'])) {
 <?php
 include '../connection/db_connect.php';
 
+$tasks = $conn->query("SELECT * FROM tasks");
+
+if (!$tasks) {
+    die("Query failed: " . $conn->error);
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Add Task
     if (isset($_POST['add_task'])) {
-        $emp_id = $_POST['emp_id'];
         $title = $_POST['title'];
         $description = $_POST['description'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO tasks (emp_id, title, description, start_date, end_date, status) 
-                  VALUES ($emp_id, '$title', '$description', '$start_date', '$end_date', '$status')";
+        $query = "INSERT INTO tasks (title, description, start_date, end_date, status) 
+                  VALUES ('$title', '$description', '$start_date', '$end_date', '$status')";
         $conn->query($query);
     }
 
     // Update Task
     if (isset($_POST['update_task'])) {
         $task_id = $_POST['task_id'];
-        $emp_id = $_POST['emp_id'];
         $title = $_POST['title'];
         $description = $_POST['description'];
         $start_date = $_POST['start_date'];
@@ -36,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $status = $_POST['status'];
 
         $query = "UPDATE tasks SET 
-                  emp_id=$emp_id, 
                   title='$title', 
                   description='$description', 
                   start_date='$start_date', 
@@ -56,10 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-// Fetch all tasks with employee names
-$tasks = $conn->query("SELECT t.*, e.name as employee_name 
-                      FROM tasks t 
-                      JOIN employees e ON t.emp_id = e.emp_id");
+
 
 // Fetch employees for dropdown
 $employees = $conn->query("SELECT * FROM employees");
@@ -342,7 +342,6 @@ $employees = $conn->query("SELECT * FROM employees");
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Employee</th>
                         <th>Title</th>
                         <th>Description</th>
                         <th>Start Date</th>
@@ -355,7 +354,6 @@ $employees = $conn->query("SELECT * FROM employees");
                     <?php while ($row = $tasks->fetch_assoc()): ?>
                         <tr>
                             <td><?= $row['task_id'] ?></td>
-                            <td><?= $row['employee_name'] ?></td>
                             <td><?= $row['title'] ?></td>
                             <td><?= $row['description'] ?></td>
                             <td><?= $row['start_date'] ?></td>
@@ -384,15 +382,7 @@ $employees = $conn->query("SELECT * FROM employees");
                         </div>
                         <div class="modal-body">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
+                           
                                 <div class="col-md-6 mb-3">
                                     <label>Title</label>
                                     <input type="text" name="title" class="form-control" required>
@@ -444,18 +434,7 @@ $employees = $conn->query("SELECT * FROM employees");
                         </div>
                         <div class="modal-body">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" id="edit_emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php
-                                        // Reset pointer and fetch employees again for the dropdown
-                                        $employees->data_seek(0);
-                                        while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
+                             
                                 <div class="col-md-6 mb-3">
                                     <label>Title</label>
                                     <input type="text" name="title" id="edit_title" class="form-control" required>
@@ -569,12 +548,11 @@ $employees = $conn->query("SELECT * FROM employees");
             button.addEventListener('click', function() {
                 const row = this.closest('tr');
                 const taskId = row.cells[0].textContent;
-                const employeeName = row.cells[1].textContent;
-                const title = row.cells[2].textContent;
-                const description = row.cells[3].textContent;
-                const startDate = row.cells[4].textContent;
-                const endDate = row.cells[5].textContent;
-                const status = row.cells[6].textContent;
+                const title = row.cells[1].textContent;
+                const description = row.cells[2].textContent;
+                const startDate = row.cells[3].textContent;
+                const endDate = row.cells[4].textContent;
+                const status = row.cells[5].textContent;
 
                 // Find the employee ID (this assumes employee name is unique)
                 let empId = '';
@@ -587,7 +565,6 @@ $employees = $conn->query("SELECT * FROM employees");
 
                 // Populate the edit modal
                 document.getElementById('edit_task_id').value = taskId;
-                document.getElementById('edit_emp_id').value = empId;
                 document.getElementById('edit_title').value = title;
                 document.getElementById('edit_description').value = description;
                 document.getElementById('edit_start_date').value = startDate;

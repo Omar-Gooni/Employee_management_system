@@ -11,18 +11,43 @@ include '../connection/db_connect.php';
 $employee_id = $_SESSION['emp_id'];
 $employee = $conn->query("SELECT * FROM employees WHERE emp_id = $employee_id")->fetch_assoc();
 
-// Get employee stats
-$active_tasks = $conn->query("SELECT COUNT(*) as count FROM tasks WHERE emp_id = $employee_id AND status != 'Completed'")->fetch_assoc();
-$completed_tasks = $conn->query("SELECT COUNT(*) as count FROM tasks WHERE emp_id = $employee_id AND status = 'Completed'")->fetch_assoc();
-$attendance = $conn->query("SELECT 
-                           SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present,
-                           SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absent,
-                           SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late
-                           FROM attendance 
-                           WHERE emp_id = $employee_id")->fetch_assoc();
+// Get employee task stats via employee_task join table
 
-// Get recent tasks
-$recent_tasks = $conn->query("SELECT * FROM tasks WHERE emp_id = $employee_id ORDER BY end_date ASC LIMIT 5");
+// Active (not completed) tasks
+$active_tasks = $conn->query("
+    SELECT COUNT(*) as count 
+    FROM tasks t
+    JOIN employee_task et ON t.task_id = et.task_id
+    WHERE et.emp_id = $employee_id AND t.status != 'Completed'
+")->fetch_assoc();
+
+// Completed tasks
+$completed_tasks = $conn->query("
+    SELECT COUNT(*) as count 
+    FROM tasks t
+    JOIN employee_task et ON t.task_id = et.task_id
+    WHERE et.emp_id = $employee_id AND t.status = 'Completed'
+")->fetch_assoc();
+
+// Attendance summary
+$attendance = $conn->query("
+    SELECT 
+        SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present,
+        SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absent,
+        SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late
+    FROM attendance 
+    WHERE emp_id = $employee_id
+")->fetch_assoc();
+
+// Recent tasks assigned to this employee
+$recent_tasks = $conn->query("
+    SELECT t.*, et.assigned_date, et.status AS assignment_status
+    FROM tasks t
+    JOIN employee_task et ON t.task_id = et.task_id
+    WHERE et.emp_id = $employee_id
+    ORDER BY t.end_date ASC 
+    LIMIT 5
+");
 ?>
 
 <!DOCTYPE html>
