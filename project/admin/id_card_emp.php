@@ -28,7 +28,7 @@ $employee = $result->fetch_assoc();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EMS ID Card</title>
+    <title>GONI ICT ID Card</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -128,13 +128,13 @@ $employee = $result->fetch_assoc();
 
 <!-- FRONT SIDE -->
 <div class="card">
-    <h2>EMS</h2>
+    <h2>GONI ICT</h2>
     <div class="photo">
         <img src="../uploads/<?= htmlspecialchars($employee['image']) ?>" alt="Admin Photo">
     </div>
     <div class="info">
         <span><?= htmlspecialchars($employee['name']) ?></span>
-        ID: EMS000<?= htmlspecialchars($employee['emp_id']) ?><br>
+        ID: GONI ICT000<?= htmlspecialchars($employee['emp_id']) ?><br>
         <?= htmlspecialchars($employee['email']) ?><br>
     </div>
     <div class="role"><?= htmlspecialchars($employee['position']) ?><br></div>
@@ -145,13 +145,13 @@ $employee = $result->fetch_assoc();
 
 <!-- BACK SIDE -->
 <div class="card">
-    <h2>EMS</h2>
+    <h2>GONI ICT</h2>
     <div class="back-content">
-        This card is the property of EMS.<br>
+        This card is the property of GONI ICT.<br>
         If found, please return.<br><br>
-        Phone: +252613778899 / +252623778899<br>
-        Email: info@ems.com<br>
-        Web: www.ems.com<br>
+        Phone: +252617999682 / +252684260764<br>
+        Email: info@goni ict.com<br>
+        Web: www.goni ict.com<br>
         Location: Mogadishu, Somalia
     </div>
     <div class="qr">

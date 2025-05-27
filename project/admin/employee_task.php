@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $assigned_date = $_POST['assigned_date'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO employee_task (task_id, emp_id, assigned_date, status) 
+        $query = "INSERT INTO employee_task (task_id, employee_task_id, assigned_date, status) 
                   VALUES ($task_id, $emp_id, '$assigned_date', '$status')";
         $conn->query($query);
     }
@@ -30,11 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $status = $_POST['status'];
 
         $query = "UPDATE employee_task SET 
-                  task_id=$task_id, 
-                  emp_id=$emp_id, 
-                  assigned_date='$assigned_date', 
-                  status='$status' 
-                  WHERE employee_task_id=$employee_task_id";
+    task_id=$task_id, 
+    employee_task_id=$emp_id, 
+    assigned_date='$assigned_date', 
+    status='$status' 
+    WHERE employee_task_id=$employee_task_id";
+
         $conn->query($query);
     }
 
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Fetch all employee tasks with employee and task details
 $employee_tasks = $conn->query("SELECT et.*, e.name as employee_name, t.title as task_title
                                FROM employee_task et
-                               JOIN employees e ON et.emp_id = e.emp_id
+                               JOIN employees e ON et.employee_task_id = e.emp_id
                                JOIN tasks t ON et.task_id = t.task_id");
 
 // Fetch employees for dropdown
@@ -100,14 +101,14 @@ $tasks = $conn->query("SELECT * FROM tasks");
             color: #000 !important;
         }
 
-        #employeeTaskTable thead th {
-            font-weight: 700 !important;
-            background-color: #f8f9fa;
+        #employeeTaskTable td,
+        #employeeTaskTable th {
+            white-space: nowrap;
+
         }
 
-        #employeeTaskTable td {
-            color: #000 !important;
-            vertical-align: middle;
+        .table-responsive {
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -210,20 +211,20 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                 </span>
                             <?php endif; ?>
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -317,36 +318,39 @@ $tasks = $conn->query("SELECT * FROM tasks");
                 </div>
 
                 <!-- Employee Tasks Table -->
-                <table id="employeeTaskTable" class="table table-bordered dt-responsive nowrap w-100">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Employee</th>
-                            <th>Task</th>
-                            <th>Assigned Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $employee_tasks->fetch_assoc()): ?>
+                <div class="table-responsive">
+                    <table id="employeeTaskTable" class="table table-bordered dt-responsive nowrap w-100">
+                        <thead>
                             <tr>
-                                <td><?= $row['employee_task_id'] ?></td>
-                                <td><?= $row['employee_name'] ?></td>
-                                <td><?= $row['task_title'] ?></td>
-                                <td><?= $row['assigned_date'] ?></td>
-                                <td><?= $row['status'] ?></td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm editEmployeeTaskBtn"><i class="fas fa-edit"></i> Edit</button>
-                                    <button class="btn btn-danger btn-sm deleteEmployeeTaskBtn"
-                                        data-id="<?= $row['employee_task_id'] ?>">
-                                        Delete
-                                    </button>
-                                </td>
+                                <th>ID</th>
+                                <th>Employee</th>
+                                <th>Task</th>
+                                <th>Assigned Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $employee_tasks->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['employee_task_id'] ?></td>
+                                    <td><?= $row['employee_name'] ?></td>
+                                    <td title="<?= $row['task_title'] ?>"><?= $row['task_title'] ?></td>
+
+                                    <td><?= $row['assigned_date'] ?></td>
+                                    <td><?= $row['status'] ?></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editEmployeeTaskBtn"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="btn btn-danger btn-sm deleteEmployeeTaskBtn"
+                                            data-id="<?= $row['employee_task_id'] ?>">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Add Employee Task Modal -->
                 <div class="modal fade" id="addEmployeeTaskModal" tabindex="-1">
@@ -362,7 +366,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <label>Employee</label>
                                         <select name="emp_id" class="form-select" required>
                                             <option value="">-- Select Employee --</option>
-                                            <?php 
+                                            <?php
                                             $employees->data_seek(0); // Reset pointer
                                             while ($emp = $employees->fetch_assoc()): ?>
                                                 <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
@@ -373,7 +377,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <label>Task</label>
                                         <select name="task_id" class="form-select" required>
                                             <option value="">-- Select Task --</option>
-                                            <?php 
+                                            <?php
                                             $tasks->data_seek(0); // Reset pointer
                                             while ($task = $tasks->fetch_assoc()): ?>
                                                 <option value="<?= $task['task_id'] ?>"><?= $task['title'] ?></option>
@@ -421,7 +425,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <label>Employee</label>
                                         <select name="emp_id" id="edit_emp_id" class="form-select" required>
                                             <option value="">-- Select Employee --</option>
-                                            <?php 
+                                            <?php
                                             $employees->data_seek(0); // Reset pointer
                                             while ($emp = $employees->fetch_assoc()): ?>
                                                 <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
@@ -432,7 +436,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <label>Task</label>
                                         <select name="task_id" id="edit_task_id" class="form-select" required>
                                             <option value="">-- Select Task --</option>
-                                            <?php 
+                                            <?php
                                             $tasks->data_seek(0); // Reset pointer
                                             while ($task = $tasks->fetch_assoc()): ?>
                                                 <option value="<?= $task['task_id'] ?>"><?= $task['title'] ?></option>
@@ -495,7 +499,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
     <script>
         $(document).ready(function() {
             $('#employeeTaskTable').DataTable({
-                responsive: true
+                scrollX: true
             });
         });
 
@@ -564,4 +568,5 @@ $tasks = $conn->query("SELECT * FROM tasks");
         });
     </script>
 </body>
+
 </html>

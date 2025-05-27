@@ -5,37 +5,30 @@ if (!isset($_SESSION['emp_id'])) {
     exit();
 }
 
-
 include '../connection/db_connect.php';
+
 $emp_id = $_SESSION['emp_id'];
 
-// Handle status update
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
-    $employee_task_id = intval($_POST['employee_task_id']);
-    $new_status = $conn->real_escape_string($_POST['status']);
-    $conn->query("UPDATE employee_task SET status = '$new_status' WHERE employee_task_id = $employee_task_id AND emp_id = $emp_id");
-}
+// Fetch employee details
+$employee = $conn->query("SELECT * FROM employees WHERE emp_id = $emp_id")->fetch_assoc();
 
-// Fetch tasks assigned to the logged-in employee
-$query = "
-    SELECT et.employee_task_id, t.title, t.description, t.start_date, t.end_date,
-           et.assigned_date, et.status
-    FROM employee_task et
-    JOIN tasks t ON et.task_id = t.task_id
-    WHERE et.employee_task_id = $emp_id
-    ORDER BY et.assigned_date DESC
-";
+// Fetch attendance records for this employee only
+$attendance = $conn->query("
+    SELECT a.*, e.name AS employee_name 
+    FROM attendance a 
+    JOIN employees e ON a.emp_id = e.emp_id 
+    WHERE a.emp_id = $emp_id 
+    ORDER BY a.date DESC
+");
 
-$result = $conn->query($query);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <title>My Task</title>
+    <title>My Attendance</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -64,26 +57,38 @@ $result = $conn->query($query);
     <link href="../assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
 
     <style>
-        #taskTable th,
-        #taskTable td {
-            white-space: nowrap;
-            /* Prevent text wrapping */
-            vertical-align: middle;
-            /* Align content properly */
-            color: black;
+        /* Attendance Table Font Styling */
+        #attendanceTable thead th {
+            font-size: 18px;
+            font-weight:bolder !important;
+            color: #000000;
         }
 
-        .table-responsive {
-            overflow-x: auto;
-            /* Enable horizontal scrolling */
+        #attendanceTable tbody td {
+            font-size: 16px;
+            color:rgb(19, 19, 19);
         }
 
+        /* Updated Table Styling */
+        #adminTable {
+            font-size: 16px;
+            color: #000000;
+        }
 
+        #adminTable thead th {
+            font-weight: bold !important;
+            background-color: rgb(233, 235, 236);
+        }
+
+        #adminTable td,
+        #adminTable th {
+            padding: 8px 12px;
+        }
+        
         .welcome-message {
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 20px;
-            color: black;
         }
     </style>
 </head>
@@ -165,7 +170,7 @@ $result = $conn->query($query);
                             </form>
                         </div>
                     </li>
-
+                    
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
@@ -175,8 +180,8 @@ $result = $conn->query($query);
                                 </span>
                             <?php endif; ?>
                             <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['position']); ?></span>
+                                <span class="account-user-name"><?= $employee['name'] ?></span>
+                                <span class="account-position">Employee</span>
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-animated topbar-dropdown-menu profile-dropdown">
@@ -229,62 +234,40 @@ $result = $conn->query($query);
                                     </div>
                                 </form>
                             </div>
-                            <h4 class="page-title">My Task</h4>
+                            <h4 class="page-title">My Attendance</h4>
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="welcome-message">
-                    Welcome, ! <?php echo htmlspecialchars($_SESSION['name']); ?> Here's your Task record.
+                    Welcome, <?= $employee['name'] ?>! Here's your attendance record.
                 </div>
-                <?php
 
-                ?>
-
-                <!-- Responsive Task Table -->
-                <div class="table-responsive">
-                    <table id="taskTable" class="table table-bordered dt-responsive nowrap w-100">
-                        <thead>
+                <!-- Attendance Table -->
+                <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $attendance->fetch_assoc()): ?>
                             <tr>
-                                <th>Title</th>
-                                <th>Description</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Assigned</th>
-                                <th>Status</th>
-                                <th>Action</th>
+                                <td><?= htmlspecialchars($row['employee_name']) ?></td>
+                                <td><?= $row['date'] ?></td>
+                                <td><?= $row['check_in'] ?: '--' ?></td>
+                                <td><?= $row['check_out'] ?: '--' ?></td>
+                                <td class="status-<?= strtolower(str_replace(' ', '-', $row['status'])) ?>">
+                                    <?= $row['status'] ?>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($row = $result->fetch_assoc()) { ?>
-                                <tr>
-                                    <form method="post">
-                                        <input type="hidden" name="employee_task_id" value="<?php echo $row['employee_task_id']; ?>">
-                                        <td><?php echo htmlspecialchars($row['title']); ?></td>
-                                        <td><?php echo htmlspecialchars($row['description']); ?></td>
-                                        <td><?php echo $row['start_date']; ?></td>
-                                        <td><?php echo $row['end_date']; ?></td>
-                                        <td><?php echo $row['assigned_date']; ?></td>
-                                        <td>
-                                            <select name="status" class="form-select form-select-sm">
-                                                <option value="Assigned" <?php if ($row['status'] == 'Assigned') echo 'selected'; ?>>Assigned</option>
-                                                <option value="In Progress" <?php if ($row['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
-                                                <option value="Completed" <?php if ($row['status'] == 'Completed') echo 'selected'; ?>>Completed</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <button type="submit" name="update_status" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-save"></i> Update
-                                            </button>
-                                        </td>
-                                    </form>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
-
-
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
             </div>
             <!-- ============================================================== -->
             <!-- End Page content -->
@@ -303,17 +286,16 @@ $result = $conn->query($query);
         <!-- third party js ends -->
 
         <!-- demo app -->
-        <script src="../assets/js/pages/demo.dashboard.js"></script>
+        <script src="assets/js/pages/demo.dashboard.js"></script>
         <!-- end demo js-->
 
         <script>
             $(document).ready(function() {
-                $('#taskTable').DataTable({
+                $('#attendanceTable').DataTable({
                     responsive: true,
-                    scrollX: true
+                    order: [[1, 'desc']] // Default sort by date descending
                 });
             });
         </script>
 </body>
-
 </html>

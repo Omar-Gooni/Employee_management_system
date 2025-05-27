@@ -26,7 +26,7 @@ $upcoming_tasks = $conn->query("
     SELECT t.*, e.name AS employee_name, et.assigned_date, et.status AS assignment_status
     FROM tasks t
     JOIN employee_task et ON t.task_id = et.task_id
-    JOIN employees e ON et.emp_id = e.emp_id
+    JOIN employees e ON et.employee_task_id = e.emp_id
     WHERE t.end_date >= CURDATE()
     ORDER BY t.end_date ASC
     LIMIT 5

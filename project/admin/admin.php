@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = $_POST['admin_id'];
         $name = $_POST['name'];
         $email = $_POST['email'];
-        $password = $_POST['password'];
 
-        $query = "UPDATE admin SET name='$name', email='$email', password='$password'";
+
+        $query = "UPDATE admin SET name='$name', email='$email'";
 
         if (!empty($_FILES['image']['name'])) {
             $image_name = $_FILES['image']['name'];
@@ -88,6 +88,15 @@ $result = $conn->query("SELECT * FROM admin");
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+
+    <!-- DataTables & Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+
     <!-- third party css -->
     <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
@@ -100,33 +109,78 @@ $result = $conn->query("SELECT * FROM admin");
 
 
     <style>
-        /* Updated Table Styling */
-        #adminTable {
-            font-size: 16px;
-            /* Increased from default (you can adjust this value) */
-            color: #000000;
-            /* Black text */
+        #adminTable th,
+        #adminTable td {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            color: #000 !important;
         }
 
         #adminTable thead th {
-            font-weight: bold !important;
-            /* Bold headers */
-            background-color: rgb(233, 235, 236);
-            /* Light gray background for headers (optional) */
+            background-color: #f8f9fa;
+            font-weight: bold;
         }
 
-        #adminTable td,
-        #adminTable th {
-            padding: 8px 12px;
-            /* Better spacing */
+
+
+        /* ----- ACTIONS BUTTONS STYLING ----- */
+        /* Ensures buttons stay in one line */
+        #adminTable td:last-child {
+            white-space: nowrap;
         }
+
+        /* Button container spacing */
+        #adminTable .d-flex.gap-1 {
+            gap: 0.5rem !important;
+            /* Better spacing between buttons */
+        }
+
+        /* Base button styling */
+        #adminTable .btn {
+            min-width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px !important;
+        }
+
+        /* Icon sizing */
+        #adminTable .btn i {
+            font-size: 14px;
+            margin: 0 !important;
+        }
+
+        /* Specific button colors */
+
+
+        /* Hover effects */
+        #adminTable .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            #adminTable .btn {
+                min-width: 28px;
+                height: 28px;
+            }
+
+            #adminTable .btn i {
+                font-size: 12px;
+            }
+        }
+
 
         .admin_img {
-            width: 10px;
-            height: 0px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            padding: auto;
-
+            object-fit: cover;
         }
     </style>
 
@@ -347,58 +401,67 @@ $result = $conn->query("SELECT * FROM admin");
             <!-- Add Admin Button -->
             <div style="position: relative; margin-top: 20px;">
                 <!-- Add Admin Button -->
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="position: absolute; top: 0; right: 0;"> <i class="fas fa-plus"></i>Add Admin</button>
+                <button class="btn btn-success ml-responsive" data-bs-toggle="modal" data-bs-target="#addAdminModal"> <i class="fas fa-plus"></i>Add Admin</button>
 
                 <!-- Admin Table -->
-                <table id="adminTable" class="table table-bordered mt-3" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Password</th>
-                            <th>Image</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
+                <div class="table-responsive">
+                    <table id="adminTable" class="table table-bordered mt-3 table table-bordered table-striped display nowrap" style="width:100%">
+                        <thead>
                             <tr>
-                                <td><?= $row['admin_id'] ?></td>
-                                <td><?= $row['name'] ?></td>
-                                <td><?= $row['email'] ?></td>
-                                <td><?= $row['password'] ?></td>
-                                <td>
-                                    <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px;">
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm editBtn"
-                                        data-id="<?= $row['admin_id'] ?>"
-                                        data-name="<?= $row['name'] ?>"
-                                        data-email="<?= $row['email'] ?>"
-                                        data-password="<?= $row['password'] ?>"
-                                        data-image="<?= $row['image'] ?>"
-                                        data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm deleteBtn"
-                                        data-id="<?= $row['admin_id'] ?>">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <form action="id_card_admin.php" method="POST" target="_blank" style="display: inline;">
-                                        <input type="hidden" name="id" value="<?= $row['admin_id'] ?>">
-                                        <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                    </form>
-
-
-
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Image</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['admin_id'] ?></td>
+                                    <td><?= $row['name'] ?></td>
+                                    <td><?= $row['email'] ?></td>
+
+                                    <td>
+                                        <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px;">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <!-- Edit Button -->
+                                            <button class="btn btn-primary editBtn"
+                                                data-id="<?= $row['admin_id'] ?>"
+                                                data-name="<?= htmlspecialchars($row['name'], ENT_QUOTES) ?>"
+                                                data-email="<?= htmlspecialchars($row['email'], ENT_QUOTES) ?>"
+                                                data-image="<?= $row['image'] ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editAdminModal"
+                                                title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+
+                                            <!-- Delete Button -->
+                                            <button class="btn btn-danger deleteBtn"
+                                                data-id="<?= $row['admin_id'] ?>"
+                                                title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+
+                                            <!-- Print Button -->
+                                            <form action="id_card_admin.php" method="POST" target="_blank" class="d-inline">
+                                                <input type="hidden" name="id" value="<?= $row['admin_id'] ?>">
+                                                <button type="submit" class="btn btn-success" title="Print ID">
+                                                    <i class="fas fa-print"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
 
 
                 <!-- Add Admin Modal -->
@@ -434,7 +497,7 @@ $result = $conn->query("SELECT * FROM admin");
                                 <input type="hidden" name="admin_id" id="edit-id">
                                 <input type="text" name="name" id="edit-name" class="form-control mb-2" required>
                                 <input type="email" name="email" id="edit-email" class="form-control mb-2" required>
-                                <input type="password" name="password" id="edit-password" class="form-control" required>
+
                                 <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:40px; height:40px; border-radius: 50%;">
                                 <input type="file" name="image" class="form-control mb-2" accept="image/*">
 
@@ -453,47 +516,7 @@ $result = $conn->query("SELECT * FROM admin");
                     <input type="hidden" name="delete_admin" value="1">
                 </form>
 
-                <script>
-                    // DataTable Initialization
-                    $(document).ready(function() {
-                        $('#adminTable').DataTable();
-                    });
 
-                    // Edit Admin Button
-                    document.querySelectorAll(".editBtn").forEach(button => {
-                        button.addEventListener("click", () => {
-                            document.getElementById("edit-id").value = button.dataset.id;
-                            document.getElementById("edit-name").value = button.dataset.name;
-                            document.getElementById("edit-email").value = button.dataset.email;
-                            document.getElementById("edit-password").value = button.dataset.password;
-                            document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
-
-                        });
-                    });
-
-                    // Delete Admin Button
-                    document.querySelectorAll(".deleteBtn").forEach(button => {
-                        button.addEventListener("click", (e) => {
-                            e.preventDefault();
-                            const adminId = button.dataset.id;
-
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: "You won't be able to revert this!",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Yes, delete it!'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    document.getElementById('deleteAdminId').value = adminId;
-                                    document.getElementById('deleteForm').submit();
-                                }
-                            });
-                        });
-                    });
-                </script>
 
             </div>
 
@@ -518,6 +541,59 @@ $result = $conn->query("SELECT * FROM admin");
         <!-- demo app -->
         <script src="../assets/js/pages/demo.dashboard.js"></script>
         <!-- end demo js-->
+
+        <!-- JS Includes -->
+        <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+
+        <script>
+            // DataTable Initialization
+            $(document).ready(function() {
+                $('#adminTable').DataTable({
+                    scrollX: true
+                });
+            });
+
+            // Edit Admin Button
+            document.querySelectorAll(".editBtn").forEach(button => {
+                button.addEventListener("click", () => {
+                    document.getElementById("edit-id").value = button.dataset.id;
+                    document.getElementById("edit-name").value = button.dataset.name;
+                    document.getElementById("edit-email").value = button.dataset.email;
+                    document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
+                });
+            });
+
+
+            // Delete Admin Button
+            document.querySelectorAll(".deleteBtn").forEach(button => {
+                button.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const adminId = button.dataset.id;
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('deleteAdminId').value = adminId;
+                            document.getElementById('deleteForm').submit();
+                        }
+                    });
+                });
+            });
+        </script>
 </body>
 
 </html>

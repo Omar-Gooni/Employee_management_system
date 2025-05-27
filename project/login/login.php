@@ -2,18 +2,14 @@
 session_start();
 include '../connection/db_connect.php';
 
-
-// Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $conn->real_escape_string($_POST['email']);
     $password = $conn->real_escape_string($_POST['password']);
     $is_admin = isset($_POST['is_admin']);
 
     if ($is_admin) {
-        // Admin login
         $stmt = $conn->prepare("SELECT * FROM admin WHERE email = ? AND password = ?");
     } else {
-        // Employee login
         $stmt = $conn->prepare("SELECT * FROM employees WHERE email = ? AND password = ?");
     }
 
@@ -60,22 +56,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Custom CSS -->
     <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+
         .gradient-custom {
             background: linear-gradient(to right, rgb(46, 52, 62), rgb(30, 35, 43));
-            min-height: 100vh;
+            height: 100vh;
         }
 
         .card {
             border: none;
             border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
         .form-control {
-            height: 50px;
+            height: 40px;
             border: 2px solid #eee;
             border-radius: 10px;
-            transition: all 0.3s;
+            font-size: 0.95rem;
         }
 
         .form-control:focus {
@@ -86,55 +87,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-primary {
             background-color: rgb(19, 79, 221);
             border: none;
-            height: 50px;
-            font-size: 1.1rem;
-            transition: all 0.3s;
+            height: 45px;
+            font-size: 1rem;
         }
 
         .btn-primary:hover {
             background-color: rgb(15, 65, 185);
-            transform: translateY(-2px);
+        }
+
+        .card-body {
+            padding: 1.5rem 1.5rem;
+        }
+
+        .form-check-label {
+            font-size: 0.9rem;
+        }
+
+        .login-icon {
+            font-size: 2.5rem;
+            color: rgb(19, 79, 221);
+        }
+
+        .alert {
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body class="gradient-custom">
-    <div class="container py-5">
-        <div class="row d-flex justify-content-center align-items-center">
-            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                <div class="card bg-white">
-                    <div class="card-body p-5 text-center">
-                        <div class="mb-4">
-                            <i class="fas fa-user-shield fa-4x" style="color: rgb(19, 79, 221);"></i>
-                        </div>
-                        <h2 class="mb-4">Login</h2>
-                        <p class="mb-4 text-muted">Please enter your credentials</p>
-
-                        <?php if (isset($error)): ?>
-                            <div class="alert alert-danger mb-4"><?php echo htmlspecialchars($error); ?></div>
-                        <?php endif; ?>
-
-                        <form method="POST" action="">
-                            <div class="form-floating mb-3">
-                                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
-                                <label for="email">Email address</label>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                                <label for="password">Password</label>
-                            </div>
-
-                            <div class="form-check mb-4 text-start">
-                                <input class="form-check-input" type="checkbox" value="1" id="is_admin" name="is_admin">
-                                <label class="form-check-label" for="is_admin">
-                                    Login as Admin
-                                </label>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
-                                <i class="fas fa-sign-in-alt me-2"></i> Login
-                            </button>
-                        </form>
+    <div class="container h-100 d-flex align-items-center justify-content-center">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card bg-white">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-shield login-icon"></i>
                     </div>
+                    <h4 class="mb-3">Login</h4>
+                    <p class="text-muted mb-3">Enter your credentials below</p>
+
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                            <label for="email">Email address</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <div class="form-check mb-3 text-start">
+                            <input class="form-check-input" type="checkbox" value="1" id="is_admin" name="is_admin">
+                            <label class="form-check-label" for="is_admin">
+                                Login as Admin
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

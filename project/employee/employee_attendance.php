@@ -58,37 +58,34 @@ $attendance = $conn->query("
 
     <style>
         /* Attendance Table Font Styling */
-        #attendanceTable thead th {
-            font-size: 18px;
-            font-weight:bolder !important;
-            color: #000000;
-        }
-
+        #attendanceTable thead th,
         #attendanceTable tbody td {
             font-size: 16px;
-            color:rgb(19, 19, 19);
+            white-space: nowrap;
+            /* Keep text on one line */
+            padding: 8px 12px;
+            color: #000000;
         }
 
         /* Updated Table Styling */
         #adminTable {
             font-size: 16px;
+            /* Increased from default (you can adjust this value) */
             color: #000000;
+            /* Black text */
         }
 
         #adminTable thead th {
             font-weight: bold !important;
+            /* Bold headers */
             background-color: rgb(233, 235, 236);
+            /* Light gray background for headers (optional) */
         }
 
         #adminTable td,
         #adminTable th {
             padding: 8px 12px;
-        }
-        
-        .welcome-message {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            /* Better spacing */
         }
     </style>
 </head>
@@ -170,7 +167,7 @@ $attendance = $conn->query("
                             </form>
                         </div>
                     </li>
-                    
+
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false"
                             aria-expanded="false">
@@ -238,36 +235,38 @@ $attendance = $conn->query("
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="welcome-message">
                     Welcome, <?= $employee['name'] ?>! Here's your attendance record.
                 </div>
 
                 <!-- Attendance Table -->
-                <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $attendance->fetch_assoc()): ?>
+                <div class="table-responsive">
+                    <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
+                        <thead>
                             <tr>
-                                <td><?= htmlspecialchars($row['employee_name']) ?></td>
-                                <td><?= $row['date'] ?></td>
-                                <td><?= $row['check_in'] ?: '--' ?></td>
-                                <td><?= $row['check_out'] ?: '--' ?></td>
-                                <td class="status-<?= strtolower(str_replace(' ', '-', $row['status'])) ?>">
-                                    <?= $row['status'] ?>
-                                </td>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Status</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $attendance->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['employee_name']) ?></td>
+                                    <td><?= $row['date'] ?></td>
+                                    <td><?= $row['check_in'] ?: '--' ?></td>
+                                    <td><?= $row['check_out'] ?: '--' ?></td>
+                                    <td class="status-<?= strtolower(str_replace(' ', '-', $row['status'])) ?>">
+                                        <?= $row['status'] ?>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <!-- ============================================================== -->
             <!-- End Page content -->
@@ -290,12 +289,15 @@ $attendance = $conn->query("
         <!-- end demo js-->
 
         <script>
+            document.querySelectorAll('.editAttendanceBtn').forEach(btn => console.log(btn));
+
+
             $(document).ready(function() {
                 $('#attendanceTable').DataTable({
-                    responsive: true,
-                    order: [[1, 'desc']] // Default sort by date descending
+                    scrollX: true
                 });
             });
         </script>
 </body>
+
 </html>

@@ -12,60 +12,57 @@ if (!isset($_SESSION['admin_id'])) {
 <?php
 include '../connection/db_connect.php';
 
-// Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Add Attendance
-    if (isset($_POST['add_attendance'])) {
-        $emp_id = $_POST['emp_id'];
-        $check_in = $_POST['check_in'];
-        $check_out = $_POST['check_out'];
-        $status = $_POST['status'];
+    // Add Admin
+    if (isset($_POST['add_admin'])) {
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-        $query = "INSERT INTO attendance (emp_id,  check_in, check_out, status) 
-                  VALUES ($emp_id,  '$check_in', '$check_out', '$status')";
+        $image_name = $_FILES['image']['name'];
+        $image_tmp = $_FILES['image']['tmp_name'];
+        $image_path = '../uploads/' . $image_name;
+        move_uploaded_file($image_tmp, $image_path);
+
+        $conn->query("INSERT INTO admin (name, email, password, image) 
+                      VALUES ('$name', '$email', '$password', '$image_name')");
+    }
+
+
+    // Update Admin
+    if (isset($_POST['update_admin'])) {
+        $id = $_POST['admin_id'];
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+      
+
+        $query = "UPDATE admin SET name='$name', email='$email'";
+
+        if (!empty($_FILES['image']['name'])) {
+            $image_name = $_FILES['image']['name'];
+            $image_tmp = $_FILES['image']['tmp_name'];
+            $image_path = '../uploads/' . $image_name;
+            move_uploaded_file($image_tmp, $image_path);
+            $query .= ", image='$image_name'";
+        }
+
+        $query .= " WHERE admin_id=$id";
         $conn->query($query);
     }
 
-    // Update Attendance
-    if (isset($_POST['update_attendance'])) {
-        $id = $_POST['attendance_id'];
-        $emp_id = $_POST['emp_id'];
-        $check_in = $_POST['check_in'];
-        $check_out = $_POST['check_out'];
-        $status = $_POST['status'];
 
-        $query = "UPDATE attendance SET 
-                  emp_id=$emp_id,  
-                  check_in='$check_in', 
-                  check_out='$check_out', 
-                  status='$status' 
-                  WHERE id=$id";
-        $conn->query($query);
+    // Delete Admin
+    if (isset($_POST['delete_admin'])) {
+        $id = $_POST['admin_id'];
+        $conn->query("DELETE FROM admin WHERE admin_id=$id");
     }
 
-    // Delete Attendance
-    if (isset($_POST['delete_attendance'])) {
-        $id = $_POST['attendance_id'];
-        $conn->query("DELETE FROM attendance WHERE id=$id");
-    }
-
-    header("Location: attendance.php");
+    header("Location: admin.php");
     exit();
 }
 
-// Fetch all attendance records with employee names
-// Current query:
-$attendance = $conn->query("SELECT a.*, e.name as employee_name 
-                           FROM attendance a 
-                           JOIN employees e ON a.emp_id = e.emp_id");
-
-// Add error checking:
-if (!$attendance) {
-    die("Query failed: " . $conn->error);
-}
-
-// Fetch employees for dropdown
-$employees = $conn->query("SELECT * FROM employees");
+// Fetch all admins
+$result = $conn->query("SELECT * FROM admin");
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +70,7 @@ $employees = $conn->query("SELECT * FROM employees");
 
 <head>
     <meta charset="utf-8" />
-    <title>Attendance</title>
+    <title>Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -91,6 +88,15 @@ $employees = $conn->query("SELECT * FROM employees");
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+
+    <!-- DataTables & Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+
     <!-- third party css -->
     <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
@@ -103,33 +109,48 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
     <style>
-        /* Attendance Table Font Styling */
-        #attendanceTable th,
-        #attendanceTable td {
+        #adminTable th,
+        #adminTable td {
             white-space: nowrap !important;
-            color: #000000;
-            /* Keep all content on one line */
-        }
-
-        /* Updated Table Styling */
-        #adminTable {
-            font-size: 16px;
-            /* Increased from default (you can adjust this value) */
-            color: #000000;
-            /* Black text */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            color: #000 !important;
         }
 
         #adminTable thead th {
-            font-weight: bold !important;
-            /* Bold headers */
-            background-color: rgb(233, 235, 236);
-            /* Light gray background for headers (optional) */
+            background-color: #f8f9fa;
+            font-weight: bold;
         }
 
-        #adminTable td,
-        #adminTable th {
-            padding: 8px 12px;
-            /* Better spacing */
+        .admin_img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Responsive tweaks for mobile only */
+        @media (max-width: 576px) {
+            #adminTable .btn-sm {
+                padding: 2px 4px !important;
+                font-size: 10px !important;
+            }
+
+            #adminTable .btn-sm i {
+                display: none;
+                /* Optional: hides icons on small screens */
+            }
+        }
+
+
+
+        .admin_img {
+            width: 10px;
+            height: 0px;
+            border-radius: 50%;
+            padding: auto;
+
         }
     </style>
 
@@ -238,6 +259,9 @@ $employees = $conn->query("SELECT * FROM employees");
                                     <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
                                 </span>
                             <?php endif; ?>
+
+
+
                             <span>
                                 <span>
                                     <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
@@ -332,166 +356,138 @@ $employees = $conn->query("SELECT * FROM employees");
                                     </a>
                                 </form>
                             </div>
-                            <h4 class="page-title">Attendance Management</h4>
+                            <h4 class="page-title">Admin</h4>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- php -->
 
-            <!-- Add Attendance Button -->
-            <div class="d-flex justify-content-end mb-3">
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
-                    <i class="fas fa-plus"></i> Add Attendance
-                </button>
-            </div>
 
-            <!-- Attendance Table -->
-            <div class="table-responsive">
-                <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $attendance->fetch_assoc()): ?>
+
+
+
+
+            <!-- Add Admin Button -->
+            <div style="position: relative; margin-top: 20px;">
+                <!-- Add Admin Button -->
+                <button class="btn btn-success ml-responsive" data-bs-toggle="modal" data-bs-target="#addAdminModal"> <i class="fas fa-plus"></i>Add Admin</button>
+
+                <!-- Admin Table -->
+                <div class="table-responsive">
+                    <table id="adminTable" class="table table-bordered mt-3 table table-bordered table-striped display nowrap" style="width:100%">
+                        <thead>
                             <tr>
-                                <td><?= $row['id'] ?></td>
-                                <td><?= $row['employee_name'] ?></td>
-                                <td><?= $row['date'] ?></td>
-                                <td><?= $row['check_in'] ?: '--' ?></td>
-                                <td><?= $row['check_out'] ?: '--' ?></td>
-                                <td class="status-<?= strtolower(str_replace(' ', '-', $row['status'])) ?>">
-                                    <?= $row['status'] ?>
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm editAttendanceBtn"><i class="fas fa-edit"></i> Edit</button>
-                                    <button class="btn btn-danger btn-sm deleteAttendanceBtn"
-                                        data-id="<?= $row['id'] ?>">
-                                        Delete
-                                    </button>
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Image</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['admin_id'] ?></td>
+                                    <td><?= $row['name'] ?></td>
+                                    <td><?= $row['email'] ?></td>
+                                   
+                                    <td>
+                                        <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px;">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap align-items-center">
+                                            <button class="btn btn-primary btn-sm editBtn"
+                                                data-id="<?= $row['admin_id'] ?>"
+                                                data-name="<?= $row['name'] ?>"
+                                                data-email="<?= $row['email'] ?>"
+                                                data-password="<?= htmlspecialchars((string)($row['password'] ?? ''), ENT_QUOTES) ?>"
+                                                data-image="<?= $row['image'] ?>"
+                                                data-bs-toggle="modal" data-bs-target="#editAdminModal">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
 
+                                            <button class="btn btn-danger btn-sm deleteBtn"
+                                                data-id="<?= $row['admin_id'] ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
 
-            <!-- Add Attendance Modal -->
-            <div class="modal fade" id="addAttendanceModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Add New Attendance Record</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label>Check In Time</label>
-                                    <input type="time" name="check_in" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Check Out Time</label>
-                                    <input type="time" name="check_out" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Status</label>
-                                    <select name="status" class="form-select" required>
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                        <option value="Late">Late</option>
-                                        <option value="Half Day">Half Day</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="add_attendance" class="btn btn-primary">Add Record</button>
-                        </div>
-                    </form>
+                                            <form action="id_card_admin.php" method="POST" target="_blank" style="display: inline;">
+                                                <input type="hidden" name="id" value="<?= $row['admin_id'] ?>">
+                                                <button type="submit" class="btn btn-success btn-sm" title="Print ID Card">
+                                                    <i class="fas fa-print"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
 
-            <!-- Edit Attendance Modal -->
-            <div class="modal fade" id="editAttendanceModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
-                        <input type="hidden" name="attendance_id" id="edit_attendance_id">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit Attendance Record</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" id="edit_emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php
-                                        // Reset pointer and fetch employees again for the dropdown
-                                        $employees->data_seek(0);
-                                        while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
+
+                <!-- Add Admin Modal -->
+                <div class="modal fade" id="addAdminModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" enctype="multipart/form-data" class="modal-content">
+                            <div class="modal-header">
+                                <h5>Add Admin</h5>
                             </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label>Check In Time</label>
-                                    <input type="time" name="check_in" id="edit_check_in" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Check Out Time</label>
-                                    <input type="time" name="check_out" id="edit_check_out" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Status</label>
-                                    <select name="status" id="edit_status" class="form-select" required>
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                        <option value="Late">Late</option>
-                                        <option value="Half Day">Half Day</option>
-                                    </select>
-                                </div>
+                            <div class="modal-body">
+                                <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
+                                <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                                <input type="password" name="password" class="form-control" placeholder="Password" required>
+                                <input type="file" name="image" class="form-control mb-2" accept="image/*" required>
+
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="update_attendance" class="btn btn-primary">Update Record</button>
-                        </div>
-                    </form>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" name="add_admin" class="btn btn-primary">Add</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
+                <!-- Edit Admin Modal -->
+                <div class="modal fade" id="editAdminModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" enctype="multipart/form-data" class="modal-content">
+                            <div class="modal-header">
+                                <h5>Edit Admin</h5>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="admin_id" id="edit-id">
+                                <input type="text" name="name" id="edit-name" class="form-control mb-2" required>
+                                <input type="email" name="email" id="edit-email" class="form-control mb-2" required>
+                               
+                                <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:40px; height:40px; border-radius: 50%;">
+                                <input type="file" name="image" class="form-control mb-2" accept="image/*">
+
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" name="update_admin" class="btn btn-primary">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Hidden Delete Form -->
+                <form id="deleteForm" method="POST" style="display: none;">
+                    <input type="hidden" name="admin_id" id="deleteAdminId">
+                    <input type="hidden" name="delete_admin" value="1">
+                </form>
+
+
+
             </div>
 
             <!-- ============================================================== -->
             <!-- End Page content -->
             <!-- ============================================================== -->
-            <!-- Hidden Delete Form -->
-            <form id="deleteAttendanceForm" method="POST" style="display: none;">
-                <input type="hidden" name="attendance_id" id="deleteAttendanceId">
-                <input type="hidden" name="delete_attendance" value="1">
-            </form>
+
 
         </div>
         <!-- END wrapper -->
@@ -510,23 +506,41 @@ $employees = $conn->query("SELECT * FROM employees");
         <script src="../assets/js/pages/demo.dashboard.js"></script>
         <!-- end demo js-->
 
+        <!-- JS Includes -->
+        <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
 
 
         <script>
-            document.querySelectorAll('.editAttendanceBtn').forEach(btn => console.log(btn));
-
-
+            // DataTable Initialization
             $(document).ready(function() {
-                $('#attendanceTable').DataTable({
+                $('#adminTable').DataTable({
                     scrollX: true
                 });
             });
 
-            // Delete Attendance function
-            document.querySelectorAll(".deleteAttendanceBtn").forEach(button => {
+            // Edit Admin Button
+            document.querySelectorAll(".editBtn").forEach(button => {
+                button.addEventListener("click", () => {
+                    document.getElementById("edit-id").value = button.dataset.id;
+                    document.getElementById("edit-name").value = button.dataset.name;
+                    document.getElementById("edit-email").value = button.dataset.email;
+      
+                    document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
+
+                });
+            });
+
+            // Delete Admin Button
+            document.querySelectorAll(".deleteBtn").forEach(button => {
                 button.addEventListener("click", (e) => {
                     e.preventDefault();
-                    const attendanceId = button.dataset.id;
+                    const adminId = button.dataset.id;
 
                     Swal.fire({
                         title: 'Are you sure?',
@@ -538,39 +552,10 @@ $employees = $conn->query("SELECT * FROM employees");
                         confirmButtonText: 'Yes, delete it!'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            document.getElementById('deleteAttendanceId').value = attendanceId;
-                            document.getElementById('deleteAttendanceForm').submit();
+                            document.getElementById('deleteAdminId').value = adminId;
+                            document.getElementById('deleteForm').submit();
                         }
                     });
-                });
-            });
-
-            // Edit Attendance Button Click Handler
-            document.querySelectorAll('.editAttendanceBtn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const row = this.closest('tr');
-                    const attendanceId = row.cells[0].textContent;
-                    const employeeName = row.cells[1].textContent;
-                    const checkIn = row.cells[3].textContent;
-                    const checkOut = row.cells[4].textContent;
-                    const status = row.cells[5].textContent.trim();
-
-                    let empId = '';
-                    const employeeOptions = document.querySelectorAll('#edit_emp_id option');
-                    employeeOptions.forEach(option => {
-                        if (option.textContent === employeeName) {
-                            empId = option.value;
-                        }
-                    });
-
-                    document.getElementById('edit_attendance_id').value = attendanceId;
-                    document.getElementById('edit_emp_id').value = empId;
-                    document.getElementById('edit_check_in').value = (checkIn === '--') ? '' : checkIn;
-                    document.getElementById('edit_check_out').value = (checkOut === '--') ? '' : checkOut;
-                    document.getElementById('edit_status').value = status;
-
-                    const editModal = new bootstrap.Modal(document.getElementById('editAttendanceModal'));
-                    editModal.show();
                 });
             });
         </script>

@@ -74,6 +74,25 @@ $result = $conn->query("SELECT * FROM departments");
 
 
     <style>
+        /* Add to your <style> section */
+        .btn-success {
+            
+        
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-success:hover {
+            
+        
+            transform: translateY(-1px);
+        }
+
+        .btn-success:active {
+            transform: translateY(0);
+        }
+
         /* Updated Table Styling */
         #adminTable {
             font-size: 16px;
@@ -202,20 +221,20 @@ $result = $conn->query("SELECT * FROM departments");
                                 </span>
                             <?php endif; ?>
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -295,7 +314,7 @@ $result = $conn->query("SELECT * FROM departments");
                                     </a>
                                 </form>
                             </div>
-                            <h4 class="page-title">Admin</h4>
+                            <h4 class="mb-0">Departments</h4>
                         </div>
                     </div>
                 </div>
@@ -310,38 +329,45 @@ $result = $conn->query("SELECT * FROM departments");
             <!-- Add Admin Button -->
             <div style="position: relative; margin-top: 20px;">
                 <!-- Add Admin Button -->
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="position: absolute; top: 0; right: 0;"> <i class="fas fa-plus"></i>Add Department</button>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    
+                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                        <i class="fas fa-plus me-1"></i> Add Department
+                    </button>
+                </div>
 
-                <!-- Admin Table -->
-                <table id="adminTable" class="table table-bordered mt-3" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
+                <!-- department Table -->
+                <div class="table-responsive">
+                    <table id="departmentTable" class="table table-bordered mt-3" style="width:100%">
+                        <thead>
                             <tr>
-                                <td><?= $row['department_id'] ?></td>
-                                <td><?= $row['department_name'] ?></td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm editBtn"
-                                        data-id="<?= $row['department_id'] ?>"
-                                        data-name="<?= $row['department_name'] ?>"
-                                        data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                        Edit
-                                    </button>
-                                    <button class="btn btn-danger btn-sm deleteBtn"
-                                        data-id="<?= $row['department_id'] ?>">
-                                        Delete
-                                    </button>
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['department_id'] ?></td>
+                                    <td><?= $row['department_name'] ?></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editBtn"
+                                            data-id="<?= $row['department_id'] ?>"
+                                            data-name="<?= $row['department_name'] ?>"
+                                            data-bs-toggle="modal" data-bs-target="#editAdminModal">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-sm deleteBtn"
+                                            data-id="<?= $row['department_id'] ?>">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- Add Admin Modal -->
                 <div class="modal fade" id="addAdminModal" tabindex="-1">
@@ -388,16 +414,18 @@ $result = $conn->query("SELECT * FROM departments");
 
                 <script>
                     // DataTable Initialization
-                    $(document).ready(function() {
-                        $('#adminTable').DataTable();
-                    });
 
+                    $(document).ready(function() {
+                        $('#departmentTable').DataTable({
+                            scrollX: true
+                        });
+                    });
                     // Edit Admin Button
                     document.querySelectorAll(".editBtn").forEach(button => {
                         button.addEventListener("click", () => {
                             document.getElementById("edit-department_id").value = button.dataset.id;
 
-                            document.getElementById("edit-department_name").value =button.dataset.name;
+                            document.getElementById("edit-department_name").value = button.dataset.name;
 
                         });
                     });

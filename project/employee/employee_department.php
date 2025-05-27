@@ -52,6 +52,17 @@ $result = $conn->query("SELECT * FROM departments");
 
 
     <style>
+        /* Add to your <style> section */
+        .btn-success {
+            
+
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+      
+
         /* Updated Table Styling */
         #adminTable {
             font-size: 16px;
@@ -81,12 +92,20 @@ $result = $conn->query("SELECT * FROM departments");
     <div class="wrapper">
         <!-- ========== Left Sidebar Start ========== -->
         <div class="leftside-menu">
-            <a href="employee_dashboard.php" class="logo text-center logo-light">
+
+            <!-- LOGO -->
+            <a href="dashboard.php" class="logo text-center logo-light">
                 <span class="logo-lg">
                     <img src="../assets/images/logo.png" alt="" height="16">
                 </span>
+                <span class="logo-sm">
+                    <img src="../assets/images/logo_sm.png" alt="" height="16">
+                </span>
             </a>
 
+
+
+            <!--- Sidemenu -->
             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="employee_dashboard.php" class="side-nav-link">
@@ -123,6 +142,10 @@ $result = $conn->query("SELECT * FROM departments");
                     </a>
                 </li>
             </ul>
+            <!-- End Sidebar -->
+
+            <div class="clearfix"></div>
+
         </div>
         <!-- Sidebar -left -->
 
@@ -136,25 +159,25 @@ $result = $conn->query("SELECT * FROM departments");
         <div class="content">
             <!-- Topbar Start -->
             <div class="navbar-custom">
-                    <ul class="list-unstyled topbar-menu float-end mb-0">
-                        <li class="dropdown notification-list">
-                            <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                <ul class="list-unstyled topbar-menu float-end mb-0">
+                    <li class="dropdown notification-list">
+                        <a class="nav-link dropdown-toggle nav-user arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                             <?php if (isset($_SESSION['image']) && $_SESSION['image']): ?>
                                 <span class="account-user-avatar">
                                     <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
                                 </span>
                             <?php endif; ?>
-                                <span>
-                                    <span class="account-user-name"><?= $employee['name'] ?></span>
-                                    <span class="account-position"><?= $employee['position'] ?></span>
-                                </span>
-                            </a>
-                        </li>
-                    </ul>
-                    <button class="button-menu-mobile open-left">
-                        <i class="mdi mdi-menu"></i>
-                    </button>
-                </div>
+                            <span>
+                                <span class="account-user-name"><?= $employee['name'] ?></span>
+                                <span class="account-position"><?= $employee['position'] ?></span>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+                <button class="button-menu-mobile open-left">
+                    <i class="mdi mdi-menu"></i>
+                </button>
+            </div>
             <!-- end Topbar -->
 
             <!-- Start Content-->
@@ -162,8 +185,23 @@ $result = $conn->query("SELECT * FROM departments");
                 <div class="row">
                     <div class="col-12">
                         <div class="page-title-box">
-                          
-                            <h4 class="page-title">Department</h4>
+                            <div class="page-title-right">
+                                <form class="d-flex">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-light" id="dash-daterange">
+                                        <span class="input-group-text bg-primary border-primary text-white">
+                                            <i class="mdi mdi-calendar-range font-13"></i>
+                                        </span>
+                                    </div>
+                                    <a href="javascript: void(0);" class="btn btn-primary ms-2">
+                                        <i class="mdi mdi-autorenew"></i>
+                                    </a>
+                                    <a href="javascript: void(0);" class="btn btn-primary ms-1">
+                                        <i class="mdi mdi-filter-variant"></i>
+                                    </a>
+                                </form>
+                            </div>
+                            <h4 class="mb-0">Departments</h4>
                         </div>
                     </div>
                 </div>
@@ -178,50 +216,53 @@ $result = $conn->query("SELECT * FROM departments");
             <!-- Add Admin Button -->
             <div style="position: relative; margin-top: 20px;">
                 <!-- Add Admin Button -->
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAdminModal" style="position: absolute; top: 0; right: 0;"> <i class="fas fa-plus"></i>Add Department</button>
+                <div class="d-flex justify-content-between align-items-center mb-3">
 
-                <!-- Admin Table -->
-                <table id="adminTable" class="table table-bordered mt-3" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
+                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+                        <i class="fas fa-plus me-1"></i> Add Department
+                    </button>
+                </div>
+
+                <!-- department Table -->
+                <div class="table-responsive">
+                    <table id="departmentTable" class="table table-bordered mt-3" style="width:100%">
+                        <thead>
                             <tr>
-                                <td><?= $row['department_id'] ?></td>
-                                <td><?= $row['department_name'] ?></td>
-                                <td>
-                                    <button class="btn btn-primary btn-sm editBtn"
-                                        data-id="<?= $row['department_id'] ?>"
-                                        data-name="<?= $row['department_name'] ?>"
-                                        data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                        Edit
-                                    </button>
-                                    <button class="btn btn-danger btn-sm deleteBtn"
-                                        data-id="<?= $row['department_id'] ?>">
-                                        Delete
-                                    </button>
-                                </td>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['department_id'] ?></td>
+                                    <td><?= $row['department_name'] ?></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editBtn"
 
-                <!-- Add Admin Modal -->
-              
+                                            data-bs-toggle="modal" data-bs-target="#editAdminModal">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-sm deleteBtn">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+
 
                 <script>
                     // DataTable Initialization
-                    $(document).ready(function() {
-                        $('#adminTable').DataTable();
-                    });
 
-                    // Edit Admin Button
-                 
+                    $(document).ready(function() {
+                        $('#departmentTable').DataTable({
+                            scrollX: true
+                        });
+                    });
                 </script>
 
             </div>

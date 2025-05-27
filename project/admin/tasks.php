@@ -21,12 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_task'])) {
         $title = $_POST['title'];
         $description = $_POST['description'];
+        $due_date = $_POST['due_date'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO tasks (title, description, start_date, end_date, status) 
-                  VALUES ('$title', '$description', '$start_date', '$end_date', '$status')";
+        $query = "INSERT INTO tasks (title, description, due_date, start_date, end_date, status) 
+                  VALUES ('$title', '$description','$due_date', '$start_date', '$end_date', '$status')";
         $conn->query($query);
     }
 
@@ -35,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $task_id = $_POST['task_id'];
         $title = $_POST['title'];
         $description = $_POST['description'];
+
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
         $status = $_POST['status'];
@@ -100,19 +102,37 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
     <style>
-        #employeeTable {
-            font-size: 14px;
+        @media (max-width: 576px) {
+
+            .editTaskBtn,
+            .deleteTaskBtn {
+                padding: 2px 4px !important;
+                font-size: 10px !important;
+            }
+
+            .editTaskBtn i,
+            .deleteTaskBtn i {
+                display: none;
+                /* Optional: hide icons on very small screens */
+            }
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #tasksTable td,
+        #tasksTable th {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
             color: #000 !important;
         }
 
-        #employeeTable thead th {
-            font-weight: 700 !important;
-            background-color: #f8f9fa;
-        }
-
-        #employeeTable td {
-            color: #000 !important;
-            vertical-align: middle;
+        .btn-sm {
+            padding: 2px 6px;
+            font-size: 12px;
         }
     </style>
 
@@ -222,20 +242,20 @@ $employees = $conn->query("SELECT * FROM employees");
                                 </span>
                             <?php endif; ?>
                             <span>
-                            <span>
-                                <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
-                                <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
-                            </span>
+                                <span>
+                                    <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                                    <span class="account-position"><?php echo htmlspecialchars($_SESSION['role']); ?></span>
+                                </span>
                             </span>
                         </a>
-                      
+
                     </li>
                 </ul>
                 <button class="button-menu-mobile open-left">
                     <i class="mdi mdi-menu"></i>
                 </button>
                 <div class="app-search dropdown d-none d-lg-block">
-                   
+
 
                     <div class="dropdown-menu dropdown-menu-animated dropdown-lg" id="search-dropdown">
                         <!-- item-->
@@ -338,38 +358,46 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
             <!-- Tasks Table -->
-            <table id="tasksTable" class="table table-bordered dt-responsive nowrap w-100">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = $tasks->fetch_assoc()): ?>
+            <div class="table-responsive">
+                <table id="tasksTable" class="table table-bordered dt-responsive nowrap w-100">
+                    <thead>
                         <tr>
-                            <td><?= $row['task_id'] ?></td>
-                            <td><?= $row['title'] ?></td>
-                            <td><?= $row['description'] ?></td>
-                            <td><?= $row['start_date'] ?></td>
-                            <td><?= $row['end_date'] ?></td>
-                            <td><?= $row['status'] ?></td>
-                            <td>
-                                <button class="btn btn-primary btn-sm editTaskBtn"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="btn btn-danger btn-sm deleteTaskBtn"
-                                    data-id="<?= $row['task_id'] ?>">
-                                    Delete
-                                </button>
-                            </td>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $tasks->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= $row['task_id'] ?></td>
+                                <td><?= $row['title'] ?></td>
+                                <td><?= $row['description'] ?></td>
+                                <td><?= $row['due_date'] ?></td>
+                                <td><?= $row['start_date'] ?></td>
+                                <td><?= $row['end_date'] ?></td>
+                                <td><?= $row['status'] ?></td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-primary btn-sm editTaskBtn">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-danger btn-sm deleteTaskBtn" data-id="<?= $row['task_id'] ?>">
+                                            Delete
+                                        </button>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
 
 
             <!-- Add Task Modal -->
@@ -382,7 +410,7 @@ $employees = $conn->query("SELECT * FROM employees");
                         </div>
                         <div class="modal-body">
                             <div class="row">
-                           
+
                                 <div class="col-md-6 mb-3">
                                     <label>Title</label>
                                     <input type="text" name="title" class="form-control" required>
@@ -392,6 +420,12 @@ $employees = $conn->query("SELECT * FROM employees");
                                 <div class="col-12 mb-3">
                                     <label>Description</label>
                                     <textarea name="description" class="form-control" rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label>Due Date</label>
+                                    <input type="date" name="due_date" class="form-control" required>
                                 </div>
                             </div>
                             <div class="row">
@@ -434,7 +468,7 @@ $employees = $conn->query("SELECT * FROM employees");
                         </div>
                         <div class="modal-body">
                             <div class="row">
-                             
+
                                 <div class="col-md-6 mb-3">
                                     <label>Title</label>
                                     <input type="text" name="title" id="edit_title" class="form-control" required>
@@ -516,7 +550,7 @@ $employees = $conn->query("SELECT * FROM employees");
     <script>
         $(document).ready(function() {
             $('#tasksTable').DataTable({
-                responsive: true
+                scrollX: true
             });
         });
 

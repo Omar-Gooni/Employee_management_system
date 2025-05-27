@@ -18,7 +18,7 @@ $active_tasks = $conn->query("
     SELECT COUNT(*) as count 
     FROM tasks t
     JOIN employee_task et ON t.task_id = et.task_id
-    WHERE et.emp_id = $employee_id AND t.status != 'Completed'
+    WHERE et.employee_task_id = $employee_id AND t.status != 'Completed'
 ")->fetch_assoc();
 
 // Completed tasks
@@ -26,7 +26,7 @@ $completed_tasks = $conn->query("
     SELECT COUNT(*) as count 
     FROM tasks t
     JOIN employee_task et ON t.task_id = et.task_id
-    WHERE et.emp_id = $employee_id AND t.status = 'Completed'
+    WHERE et.employee_task_id = $employee_id AND t.status = 'Completed'
 ")->fetch_assoc();
 
 // Attendance summary
@@ -44,7 +44,7 @@ $recent_tasks = $conn->query("
     SELECT t.*, et.assigned_date, et.status AS assignment_status
     FROM tasks t
     JOIN employee_task et ON t.task_id = et.task_id
-    WHERE et.emp_id = $employee_id
+    WHERE et.employee_task_id = $employee_id
     ORDER BY t.end_date ASC 
     LIMIT 5
 ");
