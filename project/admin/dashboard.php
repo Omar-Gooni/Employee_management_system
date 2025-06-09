@@ -185,7 +185,7 @@ $attendance_summary = $conn->query("SELECT
                     </a>
                 </li>
                 <br>
-                <li class="side-nav-item">
+                   <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
                         <span class="text-white">Logout</span>
