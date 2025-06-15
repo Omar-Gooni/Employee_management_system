@@ -101,6 +101,9 @@ CREATE TABLE leave_requests (
     
     FOREIGN KEY (employee_id) REFERENCES employees(emp_id) ON DELETE CASCADE
 );
+ALTER TABLE leave_requests 
+ADD COLUMN is_seen_admin BOOLEAN DEFAULT FALSE,
+ADD COLUMN is_seen_employee BOOLEAN DEFAULT FALSE;
 
 
 
