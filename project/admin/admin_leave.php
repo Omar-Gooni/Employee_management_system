@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_leave'])) {
     $status = $_POST['status'];
     $hr_comment = $_POST['hr_comment'];
 
-    // Update status, comment, and mark for employee notification
+    // 1. Update the leave request
     $conn->query("
         UPDATE leave_requests 
         SET status = '$status', 
@@ -25,9 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_leave'])) {
         WHERE id = $leave_id
     ");
 
+    // 2. If approved, change the employee's status to Inactive
+    if ($status === 'Approved') {
+        // Get the employee ID from the leave request
+        $result = $conn->query("SELECT employee_id FROM leave_requests WHERE id = $leave_id");
+        if ($result && $row = $result->fetch_assoc()) {
+            $emp_id = $row['employee_id'];
+            $conn->query("UPDATE employees SET status = 'Inactive' WHERE emp_id = $emp_id");
+        }
+    }
+
     header("Location: admin_leave.php");
     exit();
 }
+
 
 
 // Fetch leave requests

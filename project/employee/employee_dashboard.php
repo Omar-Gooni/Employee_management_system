@@ -6,6 +6,20 @@ if (!isset($_SESSION['emp_id'])) {
 }
 
 include '../connection/db_connect.php';
+// Reactivate employees whose leave has ended
+$conn->query("
+    UPDATE employees 
+    SET status = 'Active' 
+    WHERE emp_id IN (
+        SELECT employee_id 
+        FROM leave_requests 
+        WHERE end_date < CURDATE() 
+          AND status = 'Approved'
+    ) 
+    AND status = 'Inactive'
+");
+
+
 
 // Get employee data
 $employee_id = $_SESSION['emp_id'];

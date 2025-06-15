@@ -535,7 +535,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <select name="status" class="form-select" required>
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
-                                        <option value="On Leave">On Leave</option>
+                                       
                                     </select>
                                 </div>
 
@@ -614,7 +614,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <select name="status" id="edit_status" class="form-select" required>
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
-                                        <option value="On Leave">On Leave</option>
+                                      
                                     </select>
                                 </div>
                             </div>

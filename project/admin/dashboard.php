@@ -19,6 +19,20 @@ $new_requests = $conn->query("
     WHERE is_seen_admin = FALSE
 ")->fetch_assoc()['count'];
 
+// Reactivate employees whose leave has ended
+$conn->query("
+    UPDATE employees 
+    SET status = 'Active' 
+    WHERE emp_id IN (
+        SELECT employee_id 
+        FROM leave_requests 
+        WHERE end_date < CURDATE() 
+          AND status = 'Approved'
+    ) 
+    AND status = 'Inactive'
+");
+
+
 
 
 // Fetch counts for dashboard
