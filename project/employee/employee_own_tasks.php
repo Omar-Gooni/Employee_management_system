@@ -13,7 +13,7 @@ $emp_id = $_SESSION['emp_id'];
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $employee_task_id = intval($_POST['employee_task_id']);
     $new_status = $conn->real_escape_string($_POST['status']);
-    $conn->query("UPDATE employee_task SET status = '$new_status' WHERE employee_task_id = $employee_task_id AND emp_id = $emp_id");
+    $conn->query("UPDATE employee_task SET status = '$new_status' WHERE employee_task_id = $employee_task_id AND employee_task_id = $emp_id");
 }
 
 // Fetch tasks assigned to the logged-in employee
@@ -104,7 +104,7 @@ $result = $conn->query($query);
             </a>
 
             <!--- Sidemenu -->
-            <ul class="side-nav">
+               <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="employee_dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -132,6 +132,13 @@ $result = $conn->query($query);
                         <span class="text-white">Departments</span>
                     </a>
                 </li>
+                  <br>
+                <li class="side-nav-item">
+                    <a href="employee_leave.php" class="side-nav-link">
+                        <i class="fa-solid fa-file-lines text-white"></i>
+                        <span class="text-white">Leave Request</span>
+                    </a>
+                </li>
                 <br>
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
@@ -139,6 +146,7 @@ $result = $conn->query($query);
                         <span class="text-white">Logout</span>
                     </a>
                 </li>
+              
             </ul>
             <!-- End Sidebar -->
 

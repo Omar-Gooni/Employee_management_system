@@ -4,39 +4,34 @@ if (!isset($_SESSION['admin_id'])) {
     header("Location: ../login/login.php");
     exit();
 }
-?>
 
-
-<?php
 include '../connection/db_connect.php';
+// Mark all unseen leave requests as seen by admin
+$conn->query("UPDATE leave_requests SET is_seen_admin = TRUE WHERE is_seen_admin = FALSE");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    if (isset($_POST['add_admin'])) {
-        $name = $_POST['department_name'];
-        $conn->query("INSERT INTO departments (department_name) VALUES ('$name')");
-    }
+// Handle approve/reject
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_leave'])) {
+    $leave_id = $_POST['leave_id'];
+    $status = $_POST['status'];
+    $hr_comment = $_POST['hr_comment'];
 
-    // Update Admin
-    if (isset($_POST['update_admin'])) {
-        $id = $_POST['department_id'];
-        $name = $_POST['department_name'];
+    // Update status, comment, and mark for employee notification
+    $conn->query("
+        UPDATE leave_requests 
+        SET status = '$status', 
+            hr_comment = '$hr_comment', 
+            is_seen_employee = FALSE 
+        WHERE id = $leave_id
+    ");
 
-        $conn->query("UPDATE departments SET department_name='$name' WHERE department_id=$id");
-    }
-
-    // Delete Admin
-    if (isset($_POST['delete_admin'])) {
-        $id = $_POST['department_id'];
-        $conn->query("DELETE FROM departments WHERE department_id=$id");
-    }
-
-    header("Location: department.php");
+    header("Location: admin_leave.php");
     exit();
 }
 
-// Fetch all admins
-$result = $conn->query("SELECT * FROM departments");
+
+// Fetch leave requests
+$leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees e ON l.employee_id = e.emp_id");
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +39,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 <head>
     <meta charset="utf-8" />
-    <title>Department</title>
+    <title>Admin - Leave Requests</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -62,6 +57,15 @@ $result = $conn->query("SELECT * FROM departments");
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
+
+    <!-- DataTables & Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+
     <!-- third party css -->
     <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
@@ -74,46 +78,81 @@ $result = $conn->query("SELECT * FROM departments");
 
 
     <style>
-        /* Add to your <style> section */
-        .btn-success {
-            
-        
-            padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .btn-success:hover {
-            
-        
-            transform: translateY(-1px);
-        }
-
-        .btn-success:active {
-            transform: translateY(0);
-        }
-
-        /* Updated Table Styling */
-        #adminTable {
-            font-size: 16px;
-            /* Increased from default (you can adjust this value) */
-            color: #000000;
-            /* Black text */
+        #adminTable th,
+        #adminTable td {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            color: #000 !important;
         }
 
         #adminTable thead th {
-            font-weight: bold !important;
-            /* Bold headers */
-            background-color: rgb(233, 235, 236);
-            /* Light gray background for headers (optional) */
+            background-color: #f8f9fa;
+            font-weight: bold;
         }
 
-        #adminTable td,
-        #adminTable th {
-            padding: 8px 12px;
-            /* Better spacing */
+
+
+        /* ----- ACTIONS BUTTONS STYLING ----- */
+        /* Ensures buttons stay in one line */
+        #adminTable td:last-child {
+            white-space: nowrap;
         }
-         /* Wrap everything in a flex column */
+
+        /* Button container spacing */
+        #adminTable .d-flex.gap-1 {
+            gap: 0.5rem !important;
+            /* Better spacing between buttons */
+        }
+
+        /* Base button styling */
+        #adminTable .btn {
+            min-width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px !important;
+        }
+
+        /* Icon sizing */
+        #adminTable .btn i {
+            font-size: 14px;
+            margin: 0 !important;
+        }
+
+        /* Specific button colors */
+
+
+        /* Hover effects */
+        #adminTable .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            #adminTable .btn {
+                min-width: 28px;
+                height: 28px;
+            }
+
+            #adminTable .btn i {
+                font-size: 12px;
+            }
+        }
+
+
+        .admin_img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+      /* Wrap everything in a flex column */
         .leftside-menu {
             display: flex;
             flex-direction: column;
@@ -173,7 +212,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 
             <!--- Sidemenu -->
-             <ul class="side-nav">
+            <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -264,6 +303,9 @@ $result = $conn->query("SELECT * FROM departments");
                                     <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
                                 </span>
                             <?php endif; ?>
+
+
+
                             <span>
                                 <span>
                                     <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
@@ -358,7 +400,7 @@ $result = $conn->query("SELECT * FROM departments");
                                     </a>
                                 </form>
                             </div>
-                            <h4 class="mb-0">Departments</h4>
+                          <h4 class="page-title">Leave Requests</h4>
                         </div>
                     </div>
                 </div>
@@ -366,46 +408,35 @@ $result = $conn->query("SELECT * FROM departments");
             <!-- php -->
 
 
-
-
-
-
-            <!-- Add Admin Button -->
-            <div style="position: relative; margin-top: 20px;">
-                <!-- Add Admin Button -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    
-                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                        <i class="fas fa-plus me-1"></i> Add Department
-                    </button>
-                </div>
-
-                <!-- department Table -->
-                <div class="table-responsive">
-                    <table id="departmentTable" class="table table-bordered mt-3" style="width:100%">
+        <div class="table-responsive">
+                    <table id="leaveTable" class="table table-bordered dt-responsive nowrap w-100">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Name</th>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Dates</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Comment</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($row = $result->fetch_assoc()): ?>
+                            <?php while ($row = $leaves->fetch_assoc()): ?>
                                 <tr>
-                                    <td><?= $row['department_id'] ?></td>
-                                    <td><?= $row['department_name'] ?></td>
+                                    <td><?= $row['name'] ?></td>
+                                    <td><?= $row['leave_type'] ?></td>
+                                    <td><?= $row['start_date'] ?> to <?= $row['end_date'] ?></td>
+                                    <td><?= $row['reason'] ?></td>
+                                    <td><?= $row['status'] ?></td>
+                                    <td><?= $row['hr_comment'] ?></td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm editBtn"
-                                            data-id="<?= $row['department_id'] ?>"
-                                            data-name="<?= $row['department_name'] ?>"
-                                            data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                            Edit
-                                        </button>
-                                        <button class="btn btn-danger btn-sm deleteBtn"
-                                            data-id="<?= $row['department_id'] ?>">
-                                            Delete
-                                        </button>
+                                        <?php if ($row['status'] == 'Pending'): ?>
+                                            <button class="btn btn-success btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Approved"><i class="fas fa-check"></i></button>
+                                            <button class="btn btn-danger btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Rejected"><i class="fas fa-times"></i></button>
+                                        <?php else: ?>
+                                            <span>-</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -413,90 +444,13 @@ $result = $conn->query("SELECT * FROM departments");
                     </table>
                 </div>
 
-                <!-- Add Admin Modal -->
-                <div class="modal fade" id="addAdminModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
-                            <div class="modal-header">
-                                <h5>Add Department</h5>
-                            </div>
-                            <div class="modal-body">
-                                <input type="text" name="department_name" class="form-control mb-2" placeholder="Name" required>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" name="add_admin" class="btn btn-primary">Add</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
 
-                <!-- Edit Admin Modal -->
-                <div class="modal fade" id="editAdminModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
-                            <div class="modal-header">
-                                <h5>Edit Department</h5>
-                            </div>
-                            <div class="modal-body">
-                                <input type="hidden" name="department_id" id="edit-department_id">
-                                <input type="text" name="department_name" id="edit-department_name" class="form-control mb-2" required>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" name="update_admin" class="btn btn-primary">Update</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
 
-                <!-- Hidden Delete Form -->
-                <form id="deleteForm" method="POST" style="display: none;">
-                    <input type="hidden" name="department_id" id="deleteAdminId">
-                    <input type="hidden" name="delete_admin" value="1">
-                </form>
+        
 
-                <script>
-                    // DataTable Initialization
+      
 
-                    $(document).ready(function() {
-                        $('#departmentTable').DataTable({
-                            scrollX: true
-                        });
-                    });
-                    // Edit Admin Button
-                    document.querySelectorAll(".editBtn").forEach(button => {
-                        button.addEventListener("click", () => {
-                            document.getElementById("edit-department_id").value = button.dataset.id;
 
-                            document.getElementById("edit-department_name").value = button.dataset.name;
-
-                        });
-                    });
-
-                    // Delete Admin Button
-                    document.querySelectorAll(".deleteBtn").forEach(button => {
-                        button.addEventListener("click", (e) => {
-                            e.preventDefault();
-                            const department_id = button.dataset.id;
-
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: "You won't be able to revert this!",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Yes, delete it!'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    document.getElementById('deleteAdminId').value = department_id;
-                                    document.getElementById('deleteForm').submit();
-                                }
-                            });
-                        });
-                    });
-                </script>
 
             </div>
 
@@ -506,21 +460,77 @@ $result = $conn->query("SELECT * FROM departments");
 
 
         </div>
+
+              <!-- Action Modal -->
+                <div class="modal fade" id="actionModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Leave Decision</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="leave_id" id="modal_leave_id">
+                                <input type="hidden" name="status" id="modal_status">
+                                <div class="mb-3">
+                                    <label>Comment (optional)</label>
+                                    <textarea name="hr_comment" class="form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" name="action_leave" class="btn btn-primary">Submit</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
         <!-- END wrapper -->
 
-        <!-- bundle -->
-        <script src="../assets/js/vendor.min.js"></script>
-        <script src="../assets/js/app.min.js"></script>
+    <!-- bundle -->
+<script src="../assets/js/vendor.min.js"></script>
+<script src="../assets/js/app.min.js"></script>
 
-        <!-- third party js -->
-        <script src="../assets/js/vendor/apexcharts.min.js"></script>
-        <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
-        <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
-        <!-- third party js ends -->
+<!-- third party js -->
+<script src="../assets/js/vendor/apexcharts.min.js"></script>
+<script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+<script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+<!-- third party js ends -->
 
-        <!-- demo app -->
-        <script src="../assets/js/pages/demo.dashboard.js"></script>
-        <!-- end demo js-->
+<!-- demo app -->
+<script src="../assets/js/pages/demo.dashboard.js"></script>
+<!-- end demo js-->
+
+<!-- JS Includes -->
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables and Modal trigger -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Approve/Reject button click
+    document.querySelectorAll('.actBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const leaveId = this.dataset.id;
+            const status = this.dataset.status;
+
+            console.log("Clicked:", leaveId, status);
+
+            document.getElementById('modal_leave_id').value = leaveId;
+            document.getElementById('modal_status').value = status;
+
+            const modalElement = document.getElementById('actionModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+        });
+    });
+});
+</script>
+
+
+
+    
 </body>
-
 </html>

@@ -106,7 +106,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 
             <!--- Sidemenu -->
-            <ul class="side-nav">
+               <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="employee_dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -134,6 +134,13 @@ $result = $conn->query("SELECT * FROM departments");
                         <span class="text-white">Departments</span>
                     </a>
                 </li>
+                  <br>
+                <li class="side-nav-item">
+                    <a href="employee_leave.php" class="side-nav-link">
+                       <i class="fa-solid fa-file-lines text-white"></i>
+                        <span class="text-white">Leave Request</span>
+                    </a>
+                </li>
                 <br>
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
@@ -141,6 +148,7 @@ $result = $conn->query("SELECT * FROM departments");
                         <span class="text-white">Logout</span>
                     </a>
                 </li>
+              
             </ul>
             <!-- End Sidebar -->
 
@@ -216,12 +224,7 @@ $result = $conn->query("SELECT * FROM departments");
             <!-- Add Admin Button -->
             <div style="position: relative; margin-top: 20px;">
                 <!-- Add Admin Button -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-
-                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                        <i class="fas fa-plus me-1"></i> Add Department
-                    </button>
-                </div>
+             
 
                 <!-- department Table -->
                 <div class="table-responsive">
@@ -230,7 +233,7 @@ $result = $conn->query("SELECT * FROM departments");
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Actions</th>
+                            
                             </tr>
                         </thead>
                         <tbody>
@@ -238,16 +241,7 @@ $result = $conn->query("SELECT * FROM departments");
                                 <tr>
                                     <td><?= $row['department_id'] ?></td>
                                     <td><?= $row['department_name'] ?></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm editBtn"
-
-                                            data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                            Edit
-                                        </button>
-                                        <button class="btn btn-danger btn-sm deleteBtn">
-                                            Delete
-                                        </button>
-                                    </td>
+                                   
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>

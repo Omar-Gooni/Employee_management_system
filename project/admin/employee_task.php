@@ -110,6 +110,42 @@ $tasks = $conn->query("SELECT * FROM tasks");
         .table-responsive {
             overflow-x: auto;
         }
+         /* Wrap everything in a flex column */
+        .leftside-menu {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            /* prevent outer scroll */
+        }
+
+        /* Keep logo fixed at the top */
+        .leftside-menu .logo {
+            padding: 12px 0;
+            flex-shrink: 0;
+            background-color: #2c3e50;
+            /* optional: adjust your theme */
+            text-align: center;
+            z-index: 2;
+        }
+
+        /* Make side menu scrollable */
+        .leftside-menu .side-nav {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px 0;
+        }
+
+        /* Optional: customize scrollbar */
+        .leftside-menu ul.side-nav::-webkit-scrollbar {
+            width: 1px;
+        }
+
+        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -130,7 +166,7 @@ $tasks = $conn->query("SELECT * FROM tasks");
             </a>
 
             <!--- Sidemenu -->
-            <ul class="side-nav">
+             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -177,6 +213,13 @@ $tasks = $conn->query("SELECT * FROM tasks");
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
+                    </a>
+                </li>
+                <br>
+                <li class="side-nav-item">
+                    <a href="admin_leave.php" class="side-nav-link">
+                        <i class="fa-solid fa-file-lines text-white"></i>
+                        <span class="text-white">Leave Request</span>
                     </a>
                 </li>
                 <br>
