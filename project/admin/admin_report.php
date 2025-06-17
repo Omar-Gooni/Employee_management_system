@@ -7,36 +7,12 @@ if (!isset($_SESSION['admin_id'])) {
 ?>
 
 
+
+
 <?php
 include '../connection/db_connect.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    if (isset($_POST['add_admin'])) {
-        $name = $_POST['department_name'];
-        $conn->query("INSERT INTO departments (department_name) VALUES ('$name')");
-    }
-
-    // Update Admin
-    if (isset($_POST['update_admin'])) {
-        $id = $_POST['department_id'];
-        $name = $_POST['department_name'];
-
-        $conn->query("UPDATE departments SET department_name='$name' WHERE department_id=$id");
-    }
-
-    // Delete Admin
-    if (isset($_POST['delete_admin'])) {
-        $id = $_POST['department_id'];
-        $conn->query("DELETE FROM departments WHERE department_id=$id");
-    }
-
-    header("Location: department.php");
-    exit();
-}
-
-// Fetch all admins
-$result = $conn->query("SELECT * FROM departments");
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +20,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 <head>
     <meta charset="utf-8" />
-    <title>Department</title>
+    <title>Reports</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -62,6 +38,16 @@ $result = $conn->query("SELECT * FROM departments");
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+    <!-- DataTables & Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="../assets/css/app.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+
     <!-- third party css -->
     <link href="../assets/css/vendor/jquery-jvectormap-1.2.2.css" rel="stylesheet" type="text/css" />
     <!-- third party css end -->
@@ -73,84 +59,11 @@ $result = $conn->query("SELECT * FROM departments");
     <link href="../assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
 
 
-    <style>
-        /* Add to your <style> section */
-        .btn-success {
-            
-        
-            padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .btn-success:hover {
-            
-        
-            transform: translateY(-1px);
-        }
-
-        .btn-success:active {
-            transform: translateY(0);
-        }
-
-        /* Updated Table Styling */
-        #adminTable {
-            font-size: 16px;
-            /* Increased from default (you can adjust this value) */
-            color: #000000;
-            /* Black text */
-        }
-
-        #adminTable thead th {
-            font-weight: bold !important;
-            /* Bold headers */
-            background-color: rgb(233, 235, 236);
-            /* Light gray background for headers (optional) */
-        }
-
-        #adminTable td,
-        #adminTable th {
-            padding: 8px 12px;
-            /* Better spacing */
-        }
-         /* Wrap everything in a flex column */
-        .leftside-menu {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* prevent outer scroll */
-        }
-
-        /* Keep logo fixed at the top */
-        .leftside-menu .logo {
-            padding: 12px 0;
-            flex-shrink: 0;
-            background-color: #2c3e50;
-            /* optional: adjust your theme */
-            text-align: center;
-            z-index: 2;
-        }
-
-        /* Make side menu scrollable */
-        .leftside-menu .side-nav {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px 0;
-        }
-
-        /* Optional: customize scrollbar */
-        .leftside-menu ul.side-nav::-webkit-scrollbar {
-            width: 1px;
-        }
-
-        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
-        }
-        
-    </style>
+    <!-- <style>
+      .container{
+        margin-right: 200px !important;
+      }
+    </style> -->
 
 </head>
 
@@ -173,7 +86,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 
             <!--- Sidemenu -->
-             <ul class="side-nav">
+            <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -230,7 +143,7 @@ $result = $conn->query("SELECT * FROM departments");
                     </a>
                 </li>
                 <br>
-                 <li class="side-nav-item">
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
@@ -271,6 +184,9 @@ $result = $conn->query("SELECT * FROM departments");
                                     <img src="../uploads/<?= $_SESSION['image'] ?>" alt="user-image" class="rounded-circle">
                                 </span>
                             <?php endif; ?>
+
+
+
                             <span>
                                 <span>
                                     <span class="account-user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
@@ -365,169 +281,178 @@ $result = $conn->query("SELECT * FROM departments");
                                     </a>
                                 </form>
                             </div>
-                            <h4 class="mb-0">Departments</h4>
+                            <h4 class="page-title">Reports</h4>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- php -->
 
-
-
-
-
-
-            <!-- Add Admin Button -->
-            <div style="position: relative; margin-top: 20px;">
-                <!-- Add Admin Button -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    
-                    <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
-                        <i class="fas fa-plus me-1"></i> Add Department
-                    </button>
-                </div>
-
-                <!-- department Table -->
-                <div class="table-responsive">
-                    <table id="departmentTable" class="table table-bordered mt-3" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?= $row['department_id'] ?></td>
-                                    <td><?= $row['department_name'] ?></td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm editBtn"
-                                            data-id="<?= $row['department_id'] ?>"
-                                            data-name="<?= $row['department_name'] ?>"
-                                            data-bs-toggle="modal" data-bs-target="#editAdminModal">
-                                            Edit
-                                        </button>
-                                        <button class="btn btn-danger btn-sm deleteBtn"
-                                            data-id="<?= $row['department_id'] ?>">
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add Admin Modal -->
-                <div class="modal fade" id="addAdminModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
-                            <div class="modal-header">
-                                <h5>Add Department</h5>
+            <div class="container-fluid mt-4">
+                <div class="row justify-content-center">
+                    <!-- Employee Report -->
+                    <div class="col-md-5">
+                        <div class="card p-3">
+                            <div class="card-header text-center font-bold-400">Employee Report</div>
+                            <div class="card-body">
+                                <form method="GET" action="">
+                                    <label>Search by:</label>
+                                    <select name="filter_by" class="form-control mb-2">
+                                        <option value="emp_id">ID</option>
+                                        <option value="email">Email</option>
+                                        <option value="phone">Phone</option>
+                                    </select>
+                                    <input type="text" name="query" class="form-control mb-2" placeholder="Enter search keyword">
+                                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                                </form>
                             </div>
-                            <div class="modal-body">
-                                <input type="text" name="department_name" class="form-control mb-2" placeholder="Name" required>
+                        </div>
+                    </div>
+
+                    <!-- Task Report -->
+                    <div class="col-md-5">
+                        <div class="card p-2">
+                            <div class="card-header text-center">Task Report (By Date Range)</div>
+                            <div class="card-body">
+                                <form method="GET" action="">
+                                    <div class="row">
+                                        <div class="col">
+                                            <label>From:</label>
+                                            <input type="date" name="from_date" class="form-control">
+                                        </div>
+                                        <div class="col">
+                                            <label>To:</label>
+                                            <input type="date" name="to_date" class="form-control">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-3 w-100">Filter</button>
+                                </form>
                             </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" name="add_admin" class="btn btn-primary">Add</button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Edit Admin Modal -->
-                <div class="modal fade" id="editAdminModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
-                            <div class="modal-header">
-                                <h5>Edit Department</h5>
-                            </div>
-                            <div class="modal-body">
-                                <input type="hidden" name="department_id" id="edit-department_id">
-                                <input type="text" name="department_name" id="edit-department_name" class="form-control mb-2" required>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="submit" name="update_admin" class="btn btn-primary">Update</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Hidden Delete Form -->
-                <form id="deleteForm" method="POST" style="display: none;">
-                    <input type="hidden" name="department_id" id="deleteAdminId">
-                    <input type="hidden" name="delete_admin" value="1">
-                </form>
-
-                <script>
-                    // DataTable Initialization
-
-                    $(document).ready(function() {
-                        $('#departmentTable').DataTable({
-                            scrollX: true
-                        });
-                    });
-                    // Edit Admin Button
-                    document.querySelectorAll(".editBtn").forEach(button => {
-                        button.addEventListener("click", () => {
-                            document.getElementById("edit-department_id").value = button.dataset.id;
-
-                            document.getElementById("edit-department_name").value = button.dataset.name;
-
-                        });
-                    });
-
-                    // Delete Admin Button
-                    document.querySelectorAll(".deleteBtn").forEach(button => {
-                        button.addEventListener("click", (e) => {
-                            e.preventDefault();
-                            const department_id = button.dataset.id;
-
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: "You won't be able to revert this!",
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#3085d6',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Yes, delete it!'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    document.getElementById('deleteAdminId').value = department_id;
-                                    document.getElementById('deleteForm').submit();
-                                }
-                            });
-                        });
-                    });
-                </script>
-
             </div>
 
-            <!-- ============================================================== -->
-            <!-- End Page content -->
-            <!-- ============================================================== -->
 
 
+            <!-- Results Section -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <?php
+                    if (isset($_GET['filter_by']) && isset($_GET['query'])) {
+                        $filter = $_GET['filter_by'];
+                        $query = $_GET['query'];
+                        $sql = "SELECT * FROM employees WHERE $filter = '$query'";
+                        $res = $conn->query($sql);
+                        if ($res->num_rows > 0) {
+                            $emp = $res->fetch_assoc();
+                            $emp_id = $emp['emp_id'];
+                            $present = $conn->query("SELECT COUNT(*) as count FROM attendance WHERE emp_id=$emp_id AND status='Present'")->fetch_assoc()['count'];
+                            $absent = $conn->query("SELECT COUNT(*) as count FROM attendance WHERE emp_id=$emp_id AND status='Absent'")->fetch_assoc()['count'];
+                            $assigned = $conn->query("SELECT COUNT(*) as count FROM employee_task WHERE employee_task_id=$emp_id")->fetch_assoc()['count'];
+                            $completed = $conn->query("SELECT COUNT(*) as count FROM employee_task WHERE employee_task_id=$emp_id AND status='Completed'")->fetch_assoc()['count'];
+
+                            echo "<h5 class='mt-3'>Employee Report Result</h5>";
+                            echo "<button class='btn btn-success mb-2' onclick=\"exportTableToExcel('employeeTable', 'employee_report')\">Export to Excel</button>";
+                            echo "<table class='table table-bordered' id='employeeTable'>
+<thead class='table-light'>
+<tr><th>Name</th><th>ID</th><th>Email</th><th>Present</th><th>Absent</th><th>Assigned</th><th>Completed</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>{$emp['name']}</td><td>{$emp['emp_id']}</td><td>{$emp['email']}</td><td>$present</td><td>$absent</td><td>$assigned</td><td>$completed</td>
+</tr>
+</tbody></table>";
+                        } else {
+                            echo "<p class='text-danger mt-3'>No employee found.</p>";
+                        }
+                            echo "<script>
+                            setTimeout(function() {
+                                window.location.href = 'admin_report.php';
+                            }, 5000);
+                        </script>";
+                    }
+
+                    if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
+                        $from = $_GET['from_date'];
+                        $to = $_GET['to_date'];
+                        $query = "SELECT t.title, et.status, e.name FROM tasks t
+JOIN employee_task et ON t.task_id = et.task_id
+JOIN employees e ON et.employee_task_id = e.emp_id
+WHERE t.start_date BETWEEN '$from' AND '$to'";
+                        $res = $conn->query($query);
+                        if ($res->num_rows > 0) {
+                            echo "<h5 class='mt-5'>Task Report Result</h5>";
+                            echo "<button class='btn btn-success mb-2' onclick=\"exportTableToExcel('taskTable', 'task_report')\">Export to Excel</button>";
+                            echo "<table class='table table-bordered' id='taskTable'>
+<thead class='table-light'><tr><th>Task</th><th>Employee</th><th>Status</th></tr></thead>
+<tbody>";
+                            while ($row = $res->fetch_assoc()) {
+                                echo "<tr><td>{$row['title']}</td><td>{$row['name']}</td><td>{$row['status']}</td></tr>";
+                            }
+                            echo "</tbody></table>";
+                        } else {
+                            echo "<p class='text-warning mt-3'>No tasks found in this range.</p>";
+                        }
+                    echo "<script>
+                    setTimeout(function() {
+                        window.location.href = 'admin_report.php';
+                    }, 5000);
+                </script>";
+                    }
+                    ?>
+                </div>
+            </div>
         </div>
-        <!-- END wrapper -->
 
-        <!-- bundle -->
-        <script src="../assets/js/vendor.min.js"></script>
-        <script src="../assets/js/app.min.js"></script>
+    </div>
+    </div>
 
-        <!-- third party js -->
-        <script src="../assets/js/vendor/apexcharts.min.js"></script>
-        <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
-        <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
-        <!-- third party js ends -->
 
-        <!-- demo app -->
-        <script src="../assets/js/pages/demo.dashboard.js"></script>
-        <!-- end demo js-->
+
+
+
+    <!-- ============================================================== -->
+    <!-- End Page content -->
+    <!-- ============================================================== -->
+
+
+    </div>
+    <!-- END wrapper -->
+
+    <!-- bundle -->
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
+
+    <!-- third party js -->
+    <script src="../assets/js/vendor/apexcharts.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+    <!-- third party js ends -->
+
+    <!-- demo app -->
+    <script src="../assets/js/pages/demo.dashboard.js"></script>
+    <!-- end demo js-->
+
+    <!-- JS Includes -->
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <script>
+        function exportTableToExcel(tableID, filename = '') {
+            var table = document.getElementById(tableID);
+            var wb = XLSX.utils.table_to_book(table, {
+                sheet: "Sheet 1"
+            });
+            XLSX.writeFile(wb, filename ? filename + ".xlsx" : "export.xlsx");
+        }
+    </script>
+
+
 </body>
 
 </html>

@@ -280,6 +280,13 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
                     </a>
                 </li>
                 <br>
+                 <li class="side-nav-item">
+                    <a href="admin_report.php" class="side-nav-link">
+                        <i class="fa-solid fa-chart-line text-white"></i>
+                        <span class="text-white">Reports</span>
+                    </a>
+                </li>
+                <br>
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
