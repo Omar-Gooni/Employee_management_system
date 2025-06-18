@@ -124,17 +124,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <h4 class="mb-3">Login</h4>
                     <p class="text-muted mb-3">Enter your credentials below</p>
 
+                    <!-- Server-side PHP Error -->
                     <?php if (isset($error)): ?>
                         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
+                    <!-- Client-side Empty Form Notification -->
+                    <div id="formAlert" class="alert alert-danger d-none"></div>
+
+                    <form id="loginForm" method="POST" action="">
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
                             <label for="email">Email address</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password">
                             <label for="password">Password</label>
                         </div>
                         <div class="form-check mb-3 text-start">
@@ -154,5 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Client-side Validation Script -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const alertBox = document.getElementById('formAlert');
+
+            if (email === '' || password === '') {
+                e.preventDefault();
+                alertBox.textContent = 'Please fill in both email and password.';
+                alertBox.classList.remove('d-none');
+                setTimeout(() => {
+                    alertBox.classList.add('d-none');
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 </html>

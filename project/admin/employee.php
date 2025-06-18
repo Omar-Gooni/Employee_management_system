@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $status = $_POST['status'];
         $password = $_POST['password'];
-     
+
 
 
         $query = "UPDATE employees SET 
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               department_id=$department_id, 
            
               status='$status'";
-             
+
 
         if (!empty($_FILES['image']['name'])) {
             $image_name = $_FILES['image']['name'];
@@ -141,7 +141,8 @@ $departments = $conn->query("SELECT * FROM departments");
             color: #000 !important;
             vertical-align: middle;
         }
-    /* Wrap everything in a flex column */
+
+        /* Wrap everything in a flex column */
         .leftside-menu {
             display: flex;
             flex-direction: column;
@@ -177,7 +178,6 @@ $departments = $conn->query("SELECT * FROM departments");
             background-color: #888;
             border-radius: 4px;
         }
-        
     </style>
 
 </head>
@@ -258,7 +258,7 @@ $departments = $conn->query("SELECT * FROM departments");
                     </a>
                 </li>
                 <br>
-                 <li class="side-nav-item">
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
@@ -436,7 +436,7 @@ $departments = $conn->query("SELECT * FROM departments");
 
                                 <td><?= $row['name'] ?></td>
                                 <td><?= $row['email'] ?></td>
-                                
+
                                 <td><?= $row['phone'] ?></td>
                                 <td><?= $row['gender'] ?></td>
                                 <td><?= $row['department_name'] ?? '' ?></td>
@@ -452,7 +452,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                         data-emp_id="<?= $row['emp_id'] ?>"
                                         data-name="<?= $row['name'] ?>"
                                         data-email="<?= $row['email'] ?>"
-                                       
+
                                         data-phone="<?= $row['phone'] ?>"
                                         data-department_id="<?= $row['department_id'] ?>"
                                         data-status="<?= $row['status'] ?>"
@@ -542,7 +542,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <select name="status" class="form-select" required>
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
-                                       
+
                                     </select>
                                 </div>
 
@@ -583,7 +583,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <label>Email</label>
                                     <input type="email" name="email" id="edit_email" class="form-control" required>
                                 </div>
-                         
+
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -621,7 +621,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <select name="status" id="edit_status" class="form-select" required>
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
-                                      
+
                                     </select>
                                 </div>
                             </div>
@@ -630,7 +630,7 @@ $departments = $conn->query("SELECT * FROM departments");
                                     <label>Image</label>
                                     <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:30px; height:30px; border-radius: 50%;">
                                     <input type="file" name="image" id="edit_image" class="form-control mb-2" accept="image/*">
-                                  
+
                                 </div>
                             </div>
                         </div>
@@ -712,12 +712,12 @@ $departments = $conn->query("SELECT * FROM departments");
         // Edit Button Click Handler
         document.querySelectorAll(".editBtn").forEach(button => {
             button.addEventListener("click", () => {
-            
+
                 console.log(button.dataset);
                 document.getElementById("edit_emp_id").value = button.dataset.emp_id;
                 document.getElementById("edit_name").value = button.dataset.name;
                 document.getElementById("edit_email").value = button.dataset.email;
-               
+
                 document.getElementById("edit_phone").value = button.dataset.phone;
                 document.getElementById("edit_department_id").value = button.dataset.department_id;
                 document.getElementById("edit_status").value = button.dataset.status;

@@ -59,11 +59,59 @@ include '../connection/db_connect.php';
     <link href="../assets/css/app-dark.min.css" rel="stylesheet" type="text/css" id="dark-style" />
 
 
-    <!-- <style>
-      .container{
-        margin-right: 200px !important;
-      }
-    </style> -->
+    <style>
+        #employeeTable {
+            font-size: 14px;
+            color: #000 !important;
+        }
+
+        #employeeTable thead th {
+            font-weight: 700 !important;
+            background-color: #f8f9fa;
+        }
+
+        #employeeTable td {
+            color: #000 !important;
+            vertical-align: middle;
+        }
+
+        /* Wrap everything in a flex column */
+        .leftside-menu {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            /* prevent outer scroll */
+        }
+
+        /* Keep logo fixed at the top */
+        .leftside-menu .logo {
+            padding: 12px 0;
+            flex-shrink: 0;
+            background-color: #2c3e50;
+            /* optional: adjust your theme */
+            text-align: center;
+            z-index: 2;
+        }
+
+        /* Make side menu scrollable */
+        .leftside-menu .side-nav {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px 0;
+        }
+
+        /* Optional: customize scrollbar */
+        .leftside-menu ul.side-nav::-webkit-scrollbar {
+            width: 1px;
+        }
+
+        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 4px;
+        }
+    </style>
 
 </head>
 
@@ -295,16 +343,21 @@ include '../connection/db_connect.php';
                         <div class="card p-3">
                             <div class="card-header text-center font-bold-400">Employee Report</div>
                             <div class="card-body">
-                                <form method="GET" action="">
+                                <!-- Add ID to Employee Report Form -->
+                                 <div id="employeeNotification" style="display:none; color: red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
+
+                                <form id="employeeForm" method="GET" action="">
                                     <label>Search by:</label>
                                     <select name="filter_by" class="form-control mb-2">
                                         <option value="emp_id">ID</option>
                                         <option value="email">Email</option>
                                         <option value="phone">Phone</option>
                                     </select>
-                                    <input type="text" name="query" class="form-control mb-2" placeholder="Enter search keyword">
+                                    <input type="text" name="query" id="queryInput" class="form-control mb-2" placeholder="Enter search keyword">
                                     <button type="submit" class="btn btn-primary w-100">Search</button>
                                 </form>
+
+
                             </div>
                         </div>
                     </div>
@@ -314,19 +367,24 @@ include '../connection/db_connect.php';
                         <div class="card p-2">
                             <div class="card-header text-center">Task Report (By Date Range)</div>
                             <div class="card-body">
-                                <form method="GET" action="">
+                                <div id="taskNotification" style="display:none; color:red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
+
+                                <!-- Add ID to Task Report Form -->
+                                <form id="taskForm" method="GET" action="">
                                     <div class="row">
                                         <div class="col">
                                             <label>From:</label>
-                                            <input type="date" name="from_date" class="form-control">
+                                            <input type="date" name="from_date" id="fromDate" class="form-control">
                                         </div>
                                         <div class="col">
                                             <label>To:</label>
-                                            <input type="date" name="to_date" class="form-control">
+                                            <input type="date" name="to_date" id="toDate" class="form-control">
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary mt-3 w-100">Filter</button>
                                 </form>
+
+
                             </div>
                         </div>
                     </div>
@@ -366,7 +424,7 @@ include '../connection/db_connect.php';
                         } else {
                             echo "<p class='text-danger mt-3'>No employee found.</p>";
                         }
-                            echo "<script>
+                        echo "<script>
                             setTimeout(function() {
                                 window.location.href = 'admin_report.php';
                             }, 5000);
@@ -394,7 +452,7 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
                         } else {
                             echo "<p class='text-warning mt-3'>No tasks found in this range.</p>";
                         }
-                    echo "<script>
+                        echo "<script>
                     setTimeout(function() {
                         window.location.href = 'admin_report.php';
                     }, 5000);
@@ -415,6 +473,7 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
     <!-- ============================================================== -->
     <!-- End Page content -->
     <!-- ============================================================== -->
+
 
 
     </div>
@@ -450,6 +509,39 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
             });
             XLSX.writeFile(wb, filename ? filename + ".xlsx" : "export.xlsx");
         }
+
+
+
+
+     function showFormNotification(id, message) {
+        const el = document.getElementById(id);
+        el.textContent = message;
+        el.style.display = 'block';
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 3000);
+    }
+
+    // Employee Form Validation
+    document.getElementById('employeeForm').addEventListener('submit', function(e) {
+        const query = document.getElementById('queryInput').value.trim();
+        if (query === '') {
+            e.preventDefault();
+            showFormNotification('employeeNotification', 'Please enter a search keyword.');
+        }
+    });
+
+    // Task Form Validation
+    document.getElementById('taskForm').addEventListener('submit', function(e) {
+        const from = document.getElementById('fromDate').value;
+        const to = document.getElementById('toDate').value;
+        if (from === '' || to === '') {
+            e.preventDefault();
+            showFormNotification('taskNotification', 'Please select both From and To dates.');
+        }
+    });
     </script>
 
 
