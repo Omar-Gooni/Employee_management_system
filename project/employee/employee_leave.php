@@ -25,13 +25,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_leave'])) {
     $end = $_POST['end_date'];
     $reason = $_POST['reason'];
 
-    $stmt = $conn->prepare("INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, status, is_seen_admin) VALUES (?, ?, ?, ?, ?, 'Pending', FALSE)");
-    $stmt->bind_param("issss", $employee_id, $type, $start, $end, $reason);
+    // ✅ STEP: Check if employee has submitted any request in last 30 days
+    $check = $conn->prepare("
+        SELECT COUNT(*) AS count 
+        FROM leave_requests 
+        WHERE employee_id = ? 
+          AND request_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    ");
+    $check->bind_param("i", $employee_id);
+    $check->execute();
+    $result = $check->get_result();
+    $data = $result->fetch_assoc();
 
+    // ❌ If a request was found in the last 30 days
+    if ($data['count'] > 0) {
+        echo "<script>
+            alert('You already submitted a leave request in the last 30 days.');
+            window.location.href = 'employee_leave.php';
+        </script>";
+        exit();
+    }
+
+    // ✅ Otherwise: Insert new request
+    $stmt = $conn->prepare("INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, reason, status, is_seen_admin, request_date) VALUES (?, ?, ?, ?, ?, 'Pending', FALSE, NOW())");
+    $stmt->bind_param("issss", $employee_id, $type, $start, $end, $reason);
     $stmt->execute();
+
     header("Location: employee_leave.php");
     exit();
 }
+
 
 $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employee_id ORDER BY start_date DESC");
 ?>
@@ -162,15 +185,20 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
 
                     <!-- Request Leave Button -->
                     <div class="d-flex justify-content-end mb-3">
-                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#leaveModal">
+                        <button class="btn btn-success" id="requestLeaveBtn">
                             <i class="fas fa-plus"></i> Request Leave
                         </button>
+
                     </div>
 
                     <!-- Leave Table -->
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
+                                <div id="leaveBlockAlert" class="alert alert-danger d-none">
+                                    You already submitted a leave request in the last 30 days.
+                                </div>
+
                                 <table id="leaveTable" class="table table-bordered dt-responsive nowrap w-100">
                                     <thead>
                                         <tr>
@@ -206,6 +234,7 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
+
                                     <div class="mb-3">
                                         <label>Leave Type</label>
                                         <select name="leave_type" class="form-select" required>
@@ -251,6 +280,30 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
                 scrollX: true
             });
         });
+        document.getElementById('requestLeaveBtn').addEventListener('click', function () {
+        fetch('check_leave_limit.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'employee_id=<?= $employee_id ?>'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.allowed) {
+                // Show the modal
+                let modal = new bootstrap.Modal(document.getElementById('leaveModal'));
+                modal.show();
+            } else {
+                // Show red alert on the page
+                const alertBox = document.getElementById('leaveBlockAlert');
+                alertBox.textContent = data.message;
+                alertBox.classList.remove('d-none');
+
+                setTimeout(() => {
+                    alertBox.classList.add('d-none');
+                }, 4000);
+            }
+        });
+    });
     </script>
 
 </body>

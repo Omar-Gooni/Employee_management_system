@@ -17,16 +17,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['add_admin'])) {
         $name = $_POST['name'];
         $email = $_POST['email'];
-        $password = $_POST['password'];
+        $phone = $_POST['phone'];
+        $gender = $_POST['gender'];
+        $password = $_POST['password'];  // plain text as requested
 
+        // Upload image
         $image_name = $_FILES['image']['name'];
         $image_tmp = $_FILES['image']['tmp_name'];
         $image_path = '../uploads/' . $image_name;
         move_uploaded_file($image_tmp, $image_path);
 
-        $conn->query("INSERT INTO admin (name, email, password, image) 
-                      VALUES ('$name', '$email', '$password', '$image_name')");
+        // Insert admin (role defaults to 'admin')
+        $conn->query("INSERT INTO admin (name, email, phone, gender, password, image) 
+                  VALUES ('$name', '$email', '$phone', '$gender', '$password', '$image_name')");
     }
+
 
 
     // Update Admin
@@ -34,9 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = $_POST['admin_id'];
         $name = $_POST['name'];
         $email = $_POST['email'];
+        $phone = $_POST['phone'];
+        $gender = $_POST['gender'];
 
-
-        $query = "UPDATE admin SET name='$name', email='$email'";
+        $query = "UPDATE admin SET name='$name', email='$email', phone='$phone', gender='$gender'";
 
         if (!empty($_FILES['image']['name'])) {
             $image_name = $_FILES['image']['name'];
@@ -51,11 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
 
+
     // Delete Admin
     if (isset($_POST['delete_admin'])) {
         $id = $_POST['admin_id'];
         $conn->query("DELETE FROM admin WHERE admin_id=$id");
     }
+
 
     header("Location: admin.php");
     exit();
@@ -183,7 +191,7 @@ $result = $conn->query("SELECT * FROM admin");
             object-fit: cover;
         }
 
-      /* Wrap everything in a flex column */
+        /* Wrap everything in a flex column */
         .leftside-menu {
             display: flex;
             flex-direction: column;
@@ -219,7 +227,6 @@ $result = $conn->query("SELECT * FROM admin");
             background-color: #888;
             border-radius: 4px;
         }
-        
     </style>
 
 </head>
@@ -300,7 +307,7 @@ $result = $conn->query("SELECT * FROM admin");
                     </a>
                 </li>
                 <br>
-                 <li class="side-nav-item">
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
@@ -456,13 +463,18 @@ $result = $conn->query("SELECT * FROM admin");
                 <button class="btn btn-success ml-responsive" data-bs-toggle="modal" data-bs-target="#addAdminModal"> <i class="fas fa-plus"></i>Add Admin</button>
 
                 <!-- Admin Table -->
+
                 <div class="table-responsive">
-                    <table id="adminTable" class="table table-bordered mt-3 table table-bordered table-striped display nowrap" style="width:100%">
+                    <table id="adminTable" class="table table-bordered mt-3 table-striped display nowrap" style="width:100%">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Phone</th>
+                                <th>Gender</th>
+                                <th>Status</th>
+                                <th>Date Joined</th>
                                 <th>Image</th>
                                 <th>Actions</th>
                             </tr>
@@ -473,9 +485,12 @@ $result = $conn->query("SELECT * FROM admin");
                                     <td><?= $row['admin_id'] ?></td>
                                     <td><?= $row['name'] ?></td>
                                     <td><?= $row['email'] ?></td>
-
+                                    <td><?= $row['phone'] ?></td>
+                                    <td><?= $row['gender'] ?></td>
+                                    <td><span class="badge bg-success"><?= $row['status'] ?></span></td>
+                                    <td><?= date('M d, Y', strtotime($row['date_joined'])) ?></td>
                                     <td>
-                                        <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px;">
+                                        <img class="admin_img" src="../uploads/<?= $row['image'] ?>" alt="Admin Image" style="width:40px; height:40px; border-radius: 50%;">
                                     </td>
                                     <td>
                                         <div class="d-flex gap-2">
@@ -484,13 +499,14 @@ $result = $conn->query("SELECT * FROM admin");
                                                 data-id="<?= $row['admin_id'] ?>"
                                                 data-name="<?= htmlspecialchars($row['name'], ENT_QUOTES) ?>"
                                                 data-email="<?= htmlspecialchars($row['email'], ENT_QUOTES) ?>"
+                                                data-phone="<?= htmlspecialchars($row['phone'], ENT_QUOTES) ?>"
+                                                data-gender="<?= $row['gender'] ?>"
                                                 data-image="<?= $row['image'] ?>"
+                                                title="Edit"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#editAdminModal"
-                                                title="Edit">
+                                                data-bs-target="#editAdminModal">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-
 
                                             <!-- Delete Button -->
                                             <button class="btn btn-danger deleteBtn"
@@ -508,7 +524,6 @@ $result = $conn->query("SELECT * FROM admin");
                                             </form>
                                         </div>
                                     </td>
-
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -516,19 +531,36 @@ $result = $conn->query("SELECT * FROM admin");
                 </div>
 
 
+
                 <!-- Add Admin Modal -->
                 <div class="modal fade" id="addAdminModal" tabindex="-1">
                     <div class="modal-dialog">
-                        <form method="POST" enctype="multipart/form-data" class="modal-content">
+                        <form method="POST" enctype="multipart/form-data" class="modal-content needs-validation" id="addAdminForm" novalidate>
                             <div class="modal-header">
-                                <h5>Add Admin</h5>
+                                <h5 class="modal-title">Add Admin</h5>
                             </div>
                             <div class="modal-body">
                                 <input type="text" name="name" class="form-control mb-2" placeholder="Name" required>
-                                <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
-                                <input type="password" name="password" class="form-control" placeholder="Password" required>
-                                <input type="file" name="image" class="form-control mb-2" accept="image/*" required>
+                                <div class="invalid-feedback">Name is required.</div>
 
+                                <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                                <div class="invalid-feedback">Please enter a valid email.</div>
+
+                                <input type="text" name="phone" class="form-control mb-2" placeholder="Phone" required>
+                                <div class="invalid-feedback">Phone is required.</div>
+
+                                <select name="gender" class="form-control mb-2" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <div class="invalid-feedback">Gender is required.</div>
+
+                                <input type="password" name="password" class="form-control mb-2" placeholder="Password" required>
+                                <div class="invalid-feedback">Password is required.</div>
+
+                                <input type="file" name="image" class="form-control mb-2" accept="image/*" required>
+                                <div class="invalid-feedback">Image is required.</div>
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -537,6 +569,9 @@ $result = $conn->query("SELECT * FROM admin");
                         </form>
                     </div>
                 </div>
+
+
+
 
                 <!-- Edit Admin Modal -->
                 <div class="modal fade" id="editAdminModal" tabindex="-1">
@@ -549,10 +584,13 @@ $result = $conn->query("SELECT * FROM admin");
                                 <input type="hidden" name="admin_id" id="edit-id">
                                 <input type="text" name="name" id="edit-name" class="form-control mb-2" required>
                                 <input type="email" name="email" id="edit-email" class="form-control mb-2" required>
-
+                                <input type="text" name="phone" id="edit-phone" class="form-control mb-2" required>
+                                <select name="gender" id="edit-gender" class="form-control mb-2" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
                                 <img id="current-image" src="" alt="Current Image" class="mb-2" style="width:40px; height:40px; border-radius: 50%;">
                                 <input type="file" name="image" class="form-control mb-2" accept="image/*">
-
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -562,11 +600,14 @@ $result = $conn->query("SELECT * FROM admin");
                     </div>
                 </div>
 
+
+
                 <!-- Hidden Delete Form -->
                 <form id="deleteForm" method="POST" style="display: none;">
                     <input type="hidden" name="admin_id" id="deleteAdminId">
                     <input type="hidden" name="delete_admin" value="1">
                 </form>
+
 
 
 
@@ -618,9 +659,12 @@ $result = $conn->query("SELECT * FROM admin");
                     document.getElementById("edit-id").value = button.dataset.id;
                     document.getElementById("edit-name").value = button.dataset.name;
                     document.getElementById("edit-email").value = button.dataset.email;
+                    document.getElementById("edit-phone").value = button.dataset.phone;
+                    document.getElementById("edit-gender").value = button.dataset.gender;
                     document.getElementById("current-image").src = "../uploads/" + button.dataset.image;
                 });
             });
+
 
 
             // Delete Admin Button
@@ -631,18 +675,29 @@ $result = $conn->query("SELECT * FROM admin");
 
                     Swal.fire({
                         title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
+                        text: "You won’t be able to undo this!",
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
                         confirmButtonText: 'Yes, delete it!'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            document.getElementById('deleteAdminId').value = adminId;
-                            document.getElementById('deleteForm').submit();
+                            document.getElementById("deleteAdminId").value = adminId;
+                            document.getElementById("deleteForm").submit();
                         }
                     });
+                });
+            });
+            document.addEventListener("DOMContentLoaded", function() {
+                const form = document.querySelector("#addAdminForm");
+
+                form.addEventListener("submit", function(e) {
+                    if (!form.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
                 });
             });
         </script>
