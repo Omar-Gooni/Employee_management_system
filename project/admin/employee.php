@@ -85,27 +85,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $_POST['phone'];
         $gender = $_POST['gender'];
         $department_id = $_POST['department_id'] ?: 'NULL';
+        $employee_type_id = $_POST['employee_type_id'];
+        $salary = $_POST['salary'];
         $status = $_POST['status'];
 
         // Start building the update query
         $query = "UPDATE employees SET 
-        name='$name', 
-        email='$email', 
-        phone='$phone', 
-        gender='$gender', 
-        department_id=$department_id, 
-        status='$status'";
+        name = '$name', 
+        email = '$email', 
+        phone = '$phone', 
+        gender = '$gender', 
+        department_id = $department_id, 
+        employee_type_id = $employee_type_id, 
+        salary = $salary, 
+        status = '$status'";
 
+        // Handle image if uploaded
         if (!empty($_FILES['image']['name'])) {
             $image_name = $_FILES['image']['name'];
             $image_tmp = $_FILES['image']['tmp_name'];
             $image_path = '../uploads/' . $image_name;
             move_uploaded_file($image_tmp, $image_path);
-            $query .= ", image='$image_name'";
+            $query .= ", image = '$image_name'";
         }
 
-        $query .= " WHERE emp_id=$id";
+        // End query with WHERE condition
+        $query .= " WHERE emp_id = $id";
 
+        // Execute and provide feedback
         if ($conn->query($query)) {
             $_SESSION['feedback'] = [
                 'icon' => 'success',
@@ -121,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ];
         }
 
+        // Redirect to refresh the page
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
@@ -552,12 +560,13 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
                                         data-status="<?= $row['status'] ?>"
                                         data-gender="<?= $row['gender'] ?>"
                                         data-image="<?= $row['image'] ?>"
-                                        data-type_id="<?= $row['employee_type_id'] ?>"
+                                        data-employee_type_id="<?= $row['employee_type_id'] ?>"
                                         data-salary="<?= $row['salary'] ?>"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editEmployeeModal">
                                         <i class="fas fa-edit"></i>
                                     </button>
+
 
                                     <button class="btn btn-danger btn-sm deleteBtn d-inline-block" data-id="<?= $row['emp_id'] ?>">
                                         <i class="fas fa-trash"></i>
@@ -680,7 +689,7 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
             </div>
 
             <!-- Edit Employee Modal -->
-            <!-- Edit Employee Modal -->
+
             <div class="modal fade" id="editEmployeeModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
                     <form method="POST" class="modal-content" enctype="multipart/form-data">
@@ -740,10 +749,11 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
                                         <?php
                                         $employee_types->data_seek(0);
                                         while ($type = $employee_types->fetch_assoc()): ?>
-                                            <option value="<?= $type['id'] ?>" data-fee="<?= $type['default_salary'] ?>">
+                                            <option value="<?= $type['type_id'] ?>" data-fee="<?= $type['default_salary'] ?>">
                                                 <?= $type['type_name'] ?>
                                             </option>
                                         <?php endwhile; ?>
+
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
