@@ -1,22 +1,37 @@
 CREATE DATABASE IF NOT EXISTS employee_management_system;
 USE employee_management_system;
-
+CREATE TABLE admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20) UNIQUE,
+    gender VARCHAR(10),
+    date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'Active',
+    password VARCHAR(255),
+    image VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    role VARCHAR(50) DEFAULT 'admin'
+);
 CREATE TABLE departments (
     department_id INT AUTO_INCREMENT PRIMARY KEY,
-    department_name VARCHAR(100) NOT NULL
+    department_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    location VARCHAR(100),
+    head_of_department INT,
+    FOREIGN KEY (head_of_department) REFERENCES admin(admin_id)
+        ON DELETE SET NULL
 );
-
-
-
 CREATE TABLE employees (
     emp_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
-    email VARCHAR(100),
-    phone VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20) UNIQUE,
     gender VARCHAR(10),
     department_id INT NULL,
-    position VARCHAR(50),
-    date_joined DATE,
+    position VARCHAR(50) DEFAULT 'employee',
+    employee_type VARCHAR(50),
+    date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'Active',
     password VARCHAR(255),
     image VARCHAR(255),
@@ -25,44 +40,34 @@ CREATE TABLE employees (
         ON DELETE SET NULL
 );
 ALTER TABLE employees
-MODIFY COLUMN position VARCHAR(50) DEFAULT 'employee';
+ADD COLUMN employee_type_id INT,
+ADD COLUMN salary DECIMAL(10, 2),
+ADD CONSTRAINT fk_employee_type
+    FOREIGN KEY (employee_type_id) REFERENCES employee_types(type_id)
+    ON DELETE SET NULL;
 
-ALTER TABLE employees
-MODIFY COLUMN date_joined DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
 
 
 CREATE TABLE attendance (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emp_id INT NOT NULL,
-    date DATE NOT NULL,
+    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     check_in TIME,
     check_out TIME,
     status VARCHAR(20) DEFAULT 'Absent',
     FOREIGN KEY (emp_id) REFERENCES employees(emp_id)
         ON DELETE CASCADE
 );
-
-ALTER TABLE attendance
-MODIFY COLUMN date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
-
-
 CREATE TABLE tasks (
     task_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255),
     description TEXT,
-    due_date DATE
+    start_date DATE,
+    end_date DATE,
+    due_date DATE,
+    status VARCHAR(50)
 );
-
-ALTER TABLE tasks
-ADD COLUMN status VARCHAR(50);
-ALTER TABLE tasks
-ADD COLUMN start_date DATE,
-ADD COLUMN end_date DATE;
-
-
-
-
 CREATE TABLE employee_task (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emp_id INT,
@@ -74,19 +79,8 @@ CREATE TABLE employee_task (
     FOREIGN KEY (task_id) REFERENCES tasks(task_id)
         ON DELETE CASCADE
 );
-
 ALTER TABLE employee_task
 CHANGE COLUMN emp_id employee_task_id INT;
-
-
-CREATE TABLE admin (
-    admin_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    password VARCHAR(255),
-    image VARCHAR(255),
-    role VARCHAR(50) DEFAULT 'admin'
-);
 
 CREATE TABLE leave_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -98,12 +92,27 @@ CREATE TABLE leave_requests (
     status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
     hr_comment TEXT,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (employee_id) REFERENCES employees(emp_id) ON DELETE CASCADE
+    is_seen_admin BOOLEAN DEFAULT FALSE,
+    is_seen_employee BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (employee_id) REFERENCES employees(emp_id)
+        ON DELETE CASCADE
 );
-ALTER TABLE leave_requests 
-ADD COLUMN is_seen_admin BOOLEAN DEFAULT FALSE,
-ADD COLUMN is_seen_employee BOOLEAN DEFAULT FALSE;
+
+
+CREATE TABLE employee_types (
+    type_id INT AUTO_INCREMENT PRIMARY KEY,
+    type_name VARCHAR(100) NOT NULL,
+    default_salary DECIMAL(10, 2) NOT NULL
+);
+INSERT INTO employee_types (type_name, default_salary)
+VALUES 
+    ('Full Time', 500.00),
+    ('Shift', 400.00),
+    ('Part Time', 250.00);
+
+
+
+
 
 
 
