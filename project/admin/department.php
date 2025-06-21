@@ -11,29 +11,82 @@ if (!isset($_SESSION['admin_id'])) {
 include '../connection/db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    session_start(); // make sure session is started
+    include '../connection/db_connect.php';
 
+    // Add Department
     if (isset($_POST['add_admin'])) {
         $name = $_POST['department_name'];
-        $conn->query("INSERT INTO departments (department_name) VALUES ('$name')");
+        $description = $_POST['description'];
+        $location = $_POST['location'];
+        $head = $_POST['head_of_department'] ?: 'NULL';
+
+        if ($conn->query("INSERT INTO departments (department_name, description, location, head_of_department) 
+                          VALUES ('$name', '$description', '$location', $head)")) {
+            $_SESSION['feedback'] = [
+                'icon' => 'success',
+                'title' => 'Department Added',
+                'text' => 'The department has been added successfully!'
+            ];
+        } else {
+            $_SESSION['feedback'] = [
+                'icon' => 'error',
+                'title' => 'Insert Failed',
+                'text' => 'Failed to add department.'
+            ];
+        }
     }
 
-    // Update Admin
+    // Update Department
     if (isset($_POST['update_admin'])) {
         $id = $_POST['department_id'];
         $name = $_POST['department_name'];
+        $description = $_POST['description'];
+        $location = $_POST['location'];
+        $head = $_POST['head_of_department'] ?: 'NULL';
 
-        $conn->query("UPDATE departments SET department_name='$name' WHERE department_id=$id");
+        if ($conn->query("UPDATE departments SET 
+                            department_name='$name', 
+                            description='$description', 
+                            location='$location', 
+                            head_of_department=$head 
+                          WHERE department_id=$id")) {
+            $_SESSION['feedback'] = [
+                'icon' => 'success',
+                'title' => 'Department Updated',
+                'text' => 'The department has been updated successfully!'
+            ];
+        } else {
+            $_SESSION['feedback'] = [
+                'icon' => 'error',
+                'title' => 'Update Failed',
+                'text' => 'Could not update department.'
+            ];
+        }
     }
 
-    // Delete Admin
+    // Delete Department
     if (isset($_POST['delete_admin'])) {
         $id = $_POST['department_id'];
-        $conn->query("DELETE FROM departments WHERE department_id=$id");
+        if ($conn->query("DELETE FROM departments WHERE department_id=$id")) {
+            $_SESSION['feedback'] = [
+                'icon' => 'success',
+                'title' => 'Department Deleted',
+                'text' => 'The department has been deleted successfully!'
+            ];
+        } else {
+            $_SESSION['feedback'] = [
+                'icon' => 'error',
+                'title' => 'Delete Failed',
+                'text' => 'Failed to delete department.'
+            ];
+        }
     }
 
     header("Location: department.php");
     exit();
 }
+
 
 // Fetch all admins
 $result = $conn->query("SELECT * FROM departments");
@@ -76,16 +129,16 @@ $result = $conn->query("SELECT * FROM departments");
     <style>
         /* Add to your <style> section */
         .btn-success {
-            
-        
+
+
             padding: 8px 16px;
             font-weight: 500;
             transition: all 0.2s;
         }
 
         .btn-success:hover {
-            
-        
+
+
             transform: translateY(-1px);
         }
 
@@ -113,7 +166,8 @@ $result = $conn->query("SELECT * FROM departments");
             padding: 8px 12px;
             /* Better spacing */
         }
-         /* Wrap everything in a flex column */
+
+        /* Wrap everything in a flex column */
         .leftside-menu {
             display: flex;
             flex-direction: column;
@@ -149,7 +203,6 @@ $result = $conn->query("SELECT * FROM departments");
             background-color: #888;
             border-radius: 4px;
         }
-        
     </style>
 
 </head>
@@ -173,7 +226,7 @@ $result = $conn->query("SELECT * FROM departments");
 
 
             <!--- Sidemenu -->
-             <ul class="side-nav">
+            <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -230,7 +283,7 @@ $result = $conn->query("SELECT * FROM departments");
                     </a>
                 </li>
                 <br>
-                 <li class="side-nav-item">
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
@@ -381,7 +434,7 @@ $result = $conn->query("SELECT * FROM departments");
             <div style="position: relative; margin-top: 20px;">
                 <!-- Add Admin Button -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    
+
                     <button class="btn btn-success px-4" data-bs-toggle="modal" data-bs-target="#addAdminModal">
                         <i class="fas fa-plus me-1"></i> Add Department
                     </button>
@@ -394,6 +447,9 @@ $result = $conn->query("SELECT * FROM departments");
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
+                                <th>Description</th>
+                                <th>Location</th>
+                                <th>Head of Department</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -402,13 +458,34 @@ $result = $conn->query("SELECT * FROM departments");
                                 <tr>
                                     <td><?= $row['department_id'] ?></td>
                                     <td><?= $row['department_name'] ?></td>
+                                    <td><?= $row['description'] ?></td>
+                                    <td><?= $row['location'] ?></td>
+                                    <td>
+                                        <?php
+                                        // Optional: Display head name instead of ID
+                                        if (!empty($row['head_of_department'])) {
+                                            $head_id = $row['head_of_department'];
+                                            $head_result = $conn->query("SELECT name FROM admin WHERE admin_id = $head_id");
+                                            $head_name = ($head_result && $head_result->num_rows > 0)
+                                                ? $head_result->fetch_assoc()['name']
+                                                : 'Unknown';
+                                            echo $head_name;
+                                        } else {
+                                            echo 'None';
+                                        }
+                                        ?>
+                                    </td>
                                     <td>
                                         <button class="btn btn-primary btn-sm editBtn"
                                             data-id="<?= $row['department_id'] ?>"
                                             data-name="<?= $row['department_name'] ?>"
+                                            data-description="<?= $row['description'] ?>"
+                                            data-location="<?= $row['location'] ?>"
+                                            data-head="<?= $row['head_of_department'] ?>"
                                             data-bs-toggle="modal" data-bs-target="#editAdminModal">
                                             Edit
                                         </button>
+
                                         <button class="btn btn-danger btn-sm deleteBtn"
                                             data-id="<?= $row['department_id'] ?>">
                                             Delete
@@ -420,7 +497,8 @@ $result = $conn->query("SELECT * FROM departments");
                     </table>
                 </div>
 
-                <!-- Add Admin Modal -->
+
+                <!-- Add Department Modal -->
                 <div class="modal fade" id="addAdminModal" tabindex="-1">
                     <div class="modal-dialog">
                         <form method="POST" class="modal-content">
@@ -429,6 +507,17 @@ $result = $conn->query("SELECT * FROM departments");
                             </div>
                             <div class="modal-body">
                                 <input type="text" name="department_name" class="form-control mb-2" placeholder="Name" required>
+                                <textarea name="description" class="form-control mb-2" placeholder="Description"></textarea>
+                                <input type="text" name="location" class="form-control mb-2" placeholder="Location">
+                                <select name="head_of_department" class="form-select mb-2">
+                                    <option value="">-- Select Head of Department --</option>
+                                    <?php
+                                    $admins = $conn->query("SELECT admin_id, name FROM admin");
+                                    while ($admin = $admins->fetch_assoc()):
+                                    ?>
+                                        <option value="<?= $admin['admin_id'] ?>"><?= $admin['name'] ?></option>
+                                    <?php endwhile; ?>
+                                </select>
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -438,7 +527,8 @@ $result = $conn->query("SELECT * FROM departments");
                     </div>
                 </div>
 
-                <!-- Edit Admin Modal -->
+
+                <!-- Edit Department Modal -->
                 <div class="modal fade" id="editAdminModal" tabindex="-1">
                     <div class="modal-dialog">
                         <form method="POST" class="modal-content">
@@ -448,6 +538,17 @@ $result = $conn->query("SELECT * FROM departments");
                             <div class="modal-body">
                                 <input type="hidden" name="department_id" id="edit-department_id">
                                 <input type="text" name="department_name" id="edit-department_name" class="form-control mb-2" required>
+                                <textarea name="description" id="edit-description" class="form-control mb-2" placeholder="Description"></textarea>
+                                <input type="text" name="location" id="edit-location" class="form-control mb-2" placeholder="Location">
+                                <select name="head_of_department" id="edit-head" class="form-select mb-2">
+                                    <option value="">-- Select Head of Department --</option>
+                                    <?php
+                                    $admins->data_seek(0); // Reset pointer
+                                    while ($admin = $admins->fetch_assoc()):
+                                    ?>
+                                        <option value="<?= $admin['admin_id'] ?>"><?= $admin['name'] ?></option>
+                                    <?php endwhile; ?>
+                                </select>
                             </div>
                             <div class="modal-footer">
                                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -456,6 +557,7 @@ $result = $conn->query("SELECT * FROM departments");
                         </form>
                     </div>
                 </div>
+
 
                 <!-- Hidden Delete Form -->
                 <form id="deleteForm" method="POST" style="display: none;">
@@ -475,11 +577,13 @@ $result = $conn->query("SELECT * FROM departments");
                     document.querySelectorAll(".editBtn").forEach(button => {
                         button.addEventListener("click", () => {
                             document.getElementById("edit-department_id").value = button.dataset.id;
-
                             document.getElementById("edit-department_name").value = button.dataset.name;
-
+                            document.getElementById("edit-description").value = button.dataset.description;
+                            document.getElementById("edit-location").value = button.dataset.location;
+                            document.getElementById("edit-head").value = button.dataset.head;
                         });
                     });
+
 
                     // Delete Admin Button
                     document.querySelectorAll(".deleteBtn").forEach(button => {
@@ -528,6 +632,20 @@ $result = $conn->query("SELECT * FROM departments");
         <!-- demo app -->
         <script src="../assets/js/pages/demo.dashboard.js"></script>
         <!-- end demo js-->
+
+
+        <?php if (isset($_SESSION['feedback'])): ?>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                Swal.fire({
+                    icon: '<?= $_SESSION['feedback']['icon'] ?>',
+                    title: '<?= $_SESSION['feedback']['title'] ?>',
+                    text: '<?= $_SESSION['feedback']['text'] ?>'
+                });
+            </script>
+            <?php unset($_SESSION['feedback']); ?>
+        <?php endif; ?>
+
 </body>
 
 </html>

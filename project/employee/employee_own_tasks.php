@@ -126,13 +126,7 @@ $result = $conn->query($query);
                     </a>
                 </li>
                 <br>
-                <li class="side-nav-item">
-                    <a href="employee_department.php" class="side-nav-link">
-                        <i class="fa-solid fa-building text-white"></i>
-                        <span class="text-white">Departments</span>
-                    </a>
-                </li>
-                  <br>
+           
                 <li class="side-nav-item">
                     <a href="employee_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
