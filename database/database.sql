@@ -116,3 +116,24 @@ VALUES
 
 
 
+insert into admin (
+    name,
+    email,
+    phone,
+    gender,
+    status,
+    password,
+    image,
+    role
+)
+values(
+"Omar Mohamuud Gooni",
+"omar@gmail.com",
+"617999682",
+"male",
+"Active",
+"123",
+"default.png",
+"admin"
+
+);
