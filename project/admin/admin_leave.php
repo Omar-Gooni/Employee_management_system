@@ -162,44 +162,9 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
             border-radius: 50%;
             object-fit: cover;
         }
-
-      /* Wrap everything in a flex column */
-        .leftside-menu {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* prevent outer scroll */
+          .side-nav-item{
+            margin-bottom: 8px;
         }
-
-        /* Keep logo fixed at the top */
-        .leftside-menu .logo {
-            padding: 12px 0;
-            flex-shrink: 0;
-            background-color: #2c3e50;
-            /* optional: adjust your theme */
-            text-align: center;
-            z-index: 2;
-        }
-
-        /* Make side menu scrollable */
-        .leftside-menu .side-nav {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px 0;
-        }
-
-        /* Optional: customize scrollbar */
-        .leftside-menu ul.side-nav::-webkit-scrollbar {
-            width: 1px;
-        }
-
-        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
-        }
-        
     </style>
 
 </head>
@@ -223,6 +188,7 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
 
 
             <!--- Sidemenu -->
+            <!--- Sidemenu -->
             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
@@ -230,63 +196,63 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
                         <span class="text-white">Dashboard</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin.php" class="side-nav-link">
                         <i class="fa-solid fa-user-shield text-white"></i>
                         <span class="text-white">Admin</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee.php" class="side-nav-link">
                         <i class="fa-solid fa-users text-white"></i>
                         <span class="text-white">Employee</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="department.php" class="side-nav-link">
                         <i class="fa-solid fa-building text-white"></i>
                         <span class="text-white">Department</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-check text-white"></i>
                         <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
                     </a>
                 </li>
-                <br>
-                 <li class="side-nav-item">
+
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
@@ -418,7 +384,7 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
                                     </a>
                                 </form>
                             </div>
-                          <h4 class="page-title">Leave Requests</h4>
+                            <h4 class="page-title">Leave Requests</h4>
                         </div>
                     </div>
                 </div>
@@ -426,129 +392,130 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
             <!-- php -->
 
 
-        <div class="table-responsive">
-                    <table id="leaveTable" class="table table-bordered dt-responsive nowrap w-100">
-                        <thead>
+            <div class="table-responsive">
+                <table id="leaveTable" class="table table-bordered dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Type</th>
+                            <th>Dates</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Comment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $leaves->fetch_assoc()): ?>
                             <tr>
-                                <th>Employee</th>
-                                <th>Type</th>
-                                <th>Dates</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Comment</th>
-                                <th>Actions</th>
+                                <td><?= $row['name'] ?></td>
+                                <td><?= $row['leave_type'] ?></td>
+                                <td><?= $row['start_date'] ?> to <?= $row['end_date'] ?></td>
+                                <td><?= $row['reason'] ?></td>
+                                <td><?= $row['status'] ?></td>
+                                <td><?= $row['hr_comment'] ?></td>
+                                <td>
+                                    <?php if ($row['status'] == 'Pending'): ?>
+                                        <button class="btn btn-success btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Approved"><i class="fas fa-check"></i></button>
+                                        <button class="btn btn-danger btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Rejected"><i class="fas fa-times"></i></button>
+                                    <?php else: ?>
+                                        <span>-</span>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($row = $leaves->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?= $row['name'] ?></td>
-                                    <td><?= $row['leave_type'] ?></td>
-                                    <td><?= $row['start_date'] ?> to <?= $row['end_date'] ?></td>
-                                    <td><?= $row['reason'] ?></td>
-                                    <td><?= $row['status'] ?></td>
-                                    <td><?= $row['hr_comment'] ?></td>
-                                    <td>
-                                        <?php if ($row['status'] == 'Pending'): ?>
-                                            <button class="btn btn-success btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Approved"><i class="fas fa-check"></i></button>
-                                            <button class="btn btn-danger btn-sm actBtn" data-id="<?= $row['id'] ?>" data-status="Rejected"><i class="fas fa-times"></i></button>
-                                        <?php else: ?>
-                                            <span>-</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-
-
-        
-
-      
-
-
-
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- ============================================================== -->
-            <!-- End Page content -->
-            <!-- ============================================================== -->
+
+
+
+
+
+
 
 
         </div>
 
-              <!-- Action Modal -->
-                <div class="modal fade" id="actionModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form method="POST" class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Leave Decision</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <input type="hidden" name="leave_id" id="modal_leave_id">
-                                <input type="hidden" name="status" id="modal_status">
-                                <div class="mb-3">
-                                    <label>Comment (optional)</label>
-                                    <textarea name="hr_comment" class="form-control"></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" name="action_leave" class="btn btn-primary">Submit</button>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
-                        </form>
+        <!-- ============================================================== -->
+        <!-- End Page content -->
+        <!-- ============================================================== -->
+
+
+    </div>
+
+    <!-- Action Modal -->
+    <div class="modal fade" id="actionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Leave Decision</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="leave_id" id="modal_leave_id">
+                    <input type="hidden" name="status" id="modal_status">
+                    <div class="mb-3">
+                        <label>Comment (optional)</label>
+                        <textarea name="hr_comment" class="form-control"></textarea>
                     </div>
                 </div>
-        <!-- END wrapper -->
+                <div class="modal-footer">
+                    <button type="submit" name="action_leave" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- END wrapper -->
 
     <!-- bundle -->
-<script src="../assets/js/vendor.min.js"></script>
-<script src="../assets/js/app.min.js"></script>
+    <script src="../assets/js/vendor.min.js"></script>
+    <script src="../assets/js/app.min.js"></script>
 
-<!-- third party js -->
-<script src="../assets/js/vendor/apexcharts.min.js"></script>
-<script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
-<script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
-<!-- third party js ends -->
+    <!-- third party js -->
+    <script src="../assets/js/vendor/apexcharts.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-1.2.2.min.js"></script>
+    <script src="../assets/js/vendor/jquery-jvectormap-world-mill-en.js"></script>
+    <!-- third party js ends -->
 
-<!-- demo app -->
-<script src="../assets/js/pages/demo.dashboard.js"></script>
-<!-- end demo js-->
+    <!-- demo app -->
+    <script src="../assets/js/pages/demo.dashboard.js"></script>
+    <!-- end demo js-->
 
-<!-- JS Includes -->
-<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- JS Includes -->
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- DataTables and Modal trigger -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Approve/Reject button click
-    document.querySelectorAll('.actBtn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const leaveId = this.dataset.id;
-            const status = this.dataset.status;
+    <!-- DataTables and Modal trigger -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Approve/Reject button click
+            document.querySelectorAll('.actBtn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const leaveId = this.dataset.id;
+                    const status = this.dataset.status;
 
-            console.log("Clicked:", leaveId, status);
+                    console.log("Clicked:", leaveId, status);
 
-            document.getElementById('modal_leave_id').value = leaveId;
-            document.getElementById('modal_status').value = status;
+                    document.getElementById('modal_leave_id').value = leaveId;
+                    document.getElementById('modal_status').value = status;
 
-            const modalElement = document.getElementById('actionModal');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-            modal.show();
+                    const modalElement = document.getElementById('actionModal');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.show();
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 
 
 
-    
+
 </body>
+
 </html>

@@ -53,11 +53,14 @@ CREATE TABLE attendance (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emp_id INT NOT NULL,
     date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attendance_date DATE NOT NULL,
     check_in TIME,
     check_out TIME,
     status VARCHAR(20) DEFAULT 'Absent',
-    FOREIGN KEY (emp_id) REFERENCES employees(emp_id)
-        ON DELETE CASCADE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_emp FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE,
+    UNIQUE (emp_id, attendance_date)
 );
 CREATE TABLE tasks (
     task_id INT AUTO_INCREMENT PRIMARY KEY,

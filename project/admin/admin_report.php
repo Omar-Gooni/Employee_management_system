@@ -74,42 +74,8 @@ include '../connection/db_connect.php';
             color: #000 !important;
             vertical-align: middle;
         }
-
-        /* Wrap everything in a flex column */
-        .leftside-menu {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* prevent outer scroll */
-        }
-
-        /* Keep logo fixed at the top */
-        .leftside-menu .logo {
-            padding: 12px 0;
-            flex-shrink: 0;
-            background-color: #2c3e50;
-            /* optional: adjust your theme */
-            text-align: center;
-            z-index: 2;
-        }
-
-        /* Make side menu scrollable */
-        .leftside-menu .side-nav {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px 0;
-        }
-
-        /* Optional: customize scrollbar */
-        .leftside-menu ul.side-nav::-webkit-scrollbar {
-            width: 1px;
-        }
-
-        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
+          .side-nav-item{
+            margin-bottom: 8px;
         }
     </style>
 
@@ -134,6 +100,7 @@ include '../connection/db_connect.php';
 
 
             <!--- Sidemenu -->
+            <!--- Sidemenu -->
             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
@@ -141,63 +108,63 @@ include '../connection/db_connect.php';
                         <span class="text-white">Dashboard</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin.php" class="side-nav-link">
                         <i class="fa-solid fa-user-shield text-white"></i>
                         <span class="text-white">Admin</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee.php" class="side-nav-link">
                         <i class="fa-solid fa-users text-white"></i>
                         <span class="text-white">Employee</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="department.php" class="side-nav-link">
                         <i class="fa-solid fa-building text-white"></i>
                         <span class="text-white">Department</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-check text-white"></i>
                         <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
@@ -344,7 +311,7 @@ include '../connection/db_connect.php';
                             <div class="card-header text-center font-bold-400">Employee Report</div>
                             <div class="card-body">
                                 <!-- Add ID to Employee Report Form -->
-                                 <div id="employeeNotification" style="display:none; color: red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
+                                <div id="employeeNotification" style="display:none; color: red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
 
                                 <form id="employeeForm" method="GET" action="">
                                     <label>Search by:</label>
@@ -513,35 +480,35 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
 
 
 
-     function showFormNotification(id, message) {
-        const el = document.getElementById(id);
-        el.textContent = message;
-        el.style.display = 'block';
+        function showFormNotification(id, message) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.style.display = 'block';
 
-        // Hide after 3 seconds
-        setTimeout(() => {
-            el.style.display = 'none';
-        }, 3000);
-    }
-
-    // Employee Form Validation
-    document.getElementById('employeeForm').addEventListener('submit', function(e) {
-        const query = document.getElementById('queryInput').value.trim();
-        if (query === '') {
-            e.preventDefault();
-            showFormNotification('employeeNotification', 'Please enter a search keyword.');
+            // Hide after 3 seconds
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 3000);
         }
-    });
 
-    // Task Form Validation
-    document.getElementById('taskForm').addEventListener('submit', function(e) {
-        const from = document.getElementById('fromDate').value;
-        const to = document.getElementById('toDate').value;
-        if (from === '' || to === '') {
-            e.preventDefault();
-            showFormNotification('taskNotification', 'Please select both From and To dates.');
-        }
-    });
+        // Employee Form Validation
+        document.getElementById('employeeForm').addEventListener('submit', function(e) {
+            const query = document.getElementById('queryInput').value.trim();
+            if (query === '') {
+                e.preventDefault();
+                showFormNotification('employeeNotification', 'Please enter a search keyword.');
+            }
+        });
+
+        // Task Form Validation
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
+            const from = document.getElementById('fromDate').value;
+            const to = document.getElementById('toDate').value;
+            if (from === '' || to === '') {
+                e.preventDefault();
+                showFormNotification('taskNotification', 'Please select both From and To dates.');
+            }
+        });
     </script>
 
 

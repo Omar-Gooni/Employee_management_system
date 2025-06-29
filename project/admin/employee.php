@@ -223,41 +223,8 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
             text-overflow: ellipsis;
             max-width: 300px;
         }
-
-        /* Sidebar layout */
-        .leftside-menu {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* prevent outer scroll */
-        }
-
-        /* Keep logo fixed at the top */
-        .leftside-menu .logo {
-            padding: 12px 0;
-            flex-shrink: 0;
-            background-color: #2c3e50;
-            text-align: center;
-            z-index: 2;
-        }
-
-        /* Make side menu scrollable */
-        .leftside-menu .side-nav {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px 0;
-        }
-
-        /* Customize scrollbar */
-        .leftside-menu ul.side-nav::-webkit-scrollbar {
-            width: 1px;
-        }
-
-        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
+          .side-nav-item{
+            margin-bottom: 8px;
         }
     </style>
 
@@ -283,6 +250,7 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
 
 
             <!--- Sidemenu -->
+            <!--- Sidemenu -->
             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
@@ -290,63 +258,63 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
                         <span class="text-white">Dashboard</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin.php" class="side-nav-link">
                         <i class="fa-solid fa-user-shield text-white"></i>
                         <span class="text-white">Admin</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee.php" class="side-nav-link">
                         <i class="fa-solid fa-users text-white"></i>
                         <span class="text-white">Employee</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="department.php" class="side-nav-link">
                         <i class="fa-solid fa-building text-white"></i>
                         <span class="text-white">Department</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-check text-white"></i>
                         <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
                     </a>
                 </li>
-                <br>
+
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>

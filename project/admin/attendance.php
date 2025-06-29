@@ -7,66 +7,94 @@ if (!isset($_SESSION['admin_id'])) {
 ?>
 
 
-
-
 <?php
 include '../connection/db_connect.php';
 
-// Handle form submissions
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Add Attendance
-    if (isset($_POST['add_attendance'])) {
-        $emp_id = $_POST['emp_id'];
-        $check_in = $_POST['check_in'];
-        $check_out = $_POST['check_out'];
-        $status = $_POST['status'];
+// ============================
+// 📅 Set Today's Date
+// ============================
+$today = date('Y-m-d');
+$current_datetime = date('Y-m-d H:i:s');
 
-        $query = "INSERT INTO attendance (emp_id,  check_in, check_out, status) 
-                  VALUES ($emp_id,  '$check_in', '$check_out', '$status')";
-        $conn->query($query);
-    }
+// ============================
+// 🔍 Check if attendance exists for today
+// ============================
+$checkAttendance = $conn->query("SELECT COUNT(*) as total FROM attendance WHERE attendance_date = '$today'");
+$attendanceExists = ($checkAttendance->fetch_assoc()['total'] > 0);
 
-    // Update Attendance
-    if (isset($_POST['update_attendance'])) {
-        $id = $_POST['attendance_id'];
-        $emp_id = $_POST['emp_id'];
-        $check_in = $_POST['check_in'];
-        $check_out = $_POST['check_out'];
-        $status = $_POST['status'];
+// ============================
+// 👥 Fetch Employees
+// ============================
+$employees = $conn->query("SELECT * FROM employees");
 
-        $query = "UPDATE attendance SET 
-                  emp_id=$emp_id,  
-                  check_in='$check_in', 
-                  check_out='$check_out', 
-                  status='$status' 
-                  WHERE id=$id";
-        $conn->query($query);
-    }
+// ============================
+// 📑 Fetch Today's Attendance
+// ============================
+$attendanceResult = $conn->query("SELECT a.*, e.name AS employee_name 
+                                  FROM attendance a 
+                                  JOIN employees e ON a.emp_id = e.emp_id 
+                                  WHERE attendance_date = '$today'");
 
-    // Delete Attendance
-    if (isset($_POST['delete_attendance'])) {
-        $id = $_POST['attendance_id'];
-        $conn->query("DELETE FROM attendance WHERE id=$id");
+// ============================
+// ➕ Handle Add Attendance
+// ============================
+if (isset($_POST['save_attendance'])) {
+    $emp_ids = $_POST['emp_id'];
+
+    foreach ($emp_ids as $emp_id) {
+        $present = isset($_POST['present_' . $emp_id]);
+        $absent = isset($_POST['absent_' . $emp_id]);
+
+        if ($present) {
+            $status = 'Present';
+        } elseif ($absent) {
+            $status = 'Absent';
+        } else {
+            continue;
+        }
+
+        $check_in = !empty($_POST['check_in_' . $emp_id]) ? $_POST['check_in_' . $emp_id] : null;
+        $check_out = !empty($_POST['check_out_' . $emp_id]) ? $_POST['check_out_' . $emp_id] : null;
+
+        // Check if attendance already exists
+        $check = $conn->query("SELECT id FROM attendance WHERE emp_id = $emp_id AND attendance_date = '$today'");
+        if ($check->num_rows > 0) {
+            continue; // Skip if already exists
+        }
+
+        // Insert Attendance
+        $stmt = $conn->prepare("INSERT INTO attendance (emp_id, date, attendance_date, check_in, check_out, status) 
+                                VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssss", $emp_id, $current_datetime, $today, $check_in, $check_out, $status);
+        $stmt->execute();
+        $stmt->close();
     }
 
     header("Location: attendance.php");
     exit();
 }
 
-// Fetch all attendance records with employee names
-// Current query:
-$attendance = $conn->query("SELECT a.*, e.name as employee_name 
-                           FROM attendance a 
-                           JOIN employees e ON a.emp_id = e.emp_id");
+// ============================
+// ✏️ Handle Edit Attendance
+// ============================
+if (isset($_POST['update_attendance'])) {
+    $attendance_id = $_POST['attendance_id'];
+    $check_out = !empty($_POST['check_out']) ? $_POST['check_out'] : null;
 
-// Add error checking:
-if (!$attendance) {
-    die("Query failed: " . $conn->error);
+    $stmt = $conn->prepare("UPDATE attendance SET check_out = ? WHERE id = ?");
+    $stmt->bind_param("si", $check_out, $attendance_id);
+    $stmt->execute();
+    $stmt->close();
+
+    header("Location: attendance.php");
+    exit();
 }
 
-// Fetch employees for dropdown
-$employees = $conn->query("SELECT * FROM employees");
+
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -131,41 +159,9 @@ $employees = $conn->query("SELECT * FROM employees");
             padding: 8px 12px;
             /* Better spacing */
         }
-         /* Wrap everything in a flex column */
-        .leftside-menu {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* prevent outer scroll */
-        }
 
-        /* Keep logo fixed at the top */
-        .leftside-menu .logo {
-            padding: 12px 0;
-            flex-shrink: 0;
-            background-color: #2c3e50;
-            /* optional: adjust your theme */
-            text-align: center;
-            z-index: 2;
-        }
-
-        /* Make side menu scrollable */
-        .leftside-menu .side-nav {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px 0;
-        }
-
-        /* Optional: customize scrollbar */
-        .leftside-menu ul.side-nav::-webkit-scrollbar {
-            width: 1px;
-        }
-
-        .leftside-menu ul.side-nav::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 4px;
+      .side-nav-item{
+            margin-bottom: 8px;
         }
         
     </style>
@@ -191,70 +187,71 @@ $employees = $conn->query("SELECT * FROM employees");
 
 
             <!--- Sidemenu -->
-          <ul class="side-nav">
+                 <!--- Sidemenu -->
+            <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
                         <span class="text-white">Dashboard</span>
                     </a>
                 </li>
-                <br>
+            
                 <li class="side-nav-item">
                     <a href="admin.php" class="side-nav-link">
                         <i class="fa-solid fa-user-shield text-white"></i>
                         <span class="text-white">Admin</span>
                     </a>
                 </li>
-                <br>
+       
                 <li class="side-nav-item">
                     <a href="employee.php" class="side-nav-link">
                         <i class="fa-solid fa-users text-white"></i>
                         <span class="text-white">Employee</span>
                     </a>
                 </li>
-                <br>
+        
                 <li class="side-nav-item">
                     <a href="department.php" class="side-nav-link">
                         <i class="fa-solid fa-building text-white"></i>
                         <span class="text-white">Department</span>
                     </a>
                 </li>
-                <br>
+      
                 <li class="side-nav-item">
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
                     </a>
                 </li>
-                <br>
+        
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-check text-white"></i>
                         <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
-                <br>
+   
                 <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
                     </a>
                 </li>
-                <br>
+          
                 <li class="side-nav-item">
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
                     </a>
                 </li>
-                <br>
+  
                  <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
                     </a>
                 </li>
-                <br>
+ 
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
@@ -397,6 +394,7 @@ $employees = $conn->query("SELECT * FROM employees");
             </div>
 
             <!-- Attendance Table -->
+            <!-- Attendance Table -->
             <div class="table-responsive">
                 <table id="attendanceTable" class="table table-bordered dt-responsive nowrap w-100">
                     <thead>
@@ -411,7 +409,7 @@ $employees = $conn->query("SELECT * FROM employees");
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = $attendance->fetch_assoc()): ?>
+                        <?php while ($row = $attendanceResult->fetch_assoc()): ?>
                             <tr>
                                 <td><?= $row['id'] ?></td>
                                 <td><?= $row['employee_name'] ?></td>
@@ -422,7 +420,10 @@ $employees = $conn->query("SELECT * FROM employees");
                                     <?= $row['status'] ?>
                                 </td>
                                 <td>
-                                    <button class="btn btn-primary btn-sm editAttendanceBtn"><i class="fas fa-edit"></i> Edit</button>
+                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#editAttendanceModal<?= $row['id'] ?>">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
                                     <button class="btn btn-danger btn-sm deleteAttendanceBtn"
                                         data-id="<?= $row['id'] ?>">
                                         Delete
@@ -435,105 +436,124 @@ $employees = $conn->query("SELECT * FROM employees");
             </div>
 
 
+
             <!-- Add Attendance Modal -->
             <div class="modal fade" id="addAttendanceModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Add New Attendance Record</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
+                <div class="modal-dialog modal-xl">
+                    <form method="POST">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Attendance for <?= date('Y-m-d') ?></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered dt-responsive nowrap w-100">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Employee</th>
+                                                <th>Present</th>
+                                                <th>Absent</th>
+                                                <th>Check-In</th>
+                                                <th>Check-Out</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $counter = 1;
+                                            $employeeList = $conn->query("SELECT * FROM employees");
+                                            while ($emp = $employeeList->fetch_assoc()): ?>
+                                                <tr>
+                                                    <td><?= $counter ?></td>
+                                                    <td>
+                                                        <?= htmlspecialchars($emp['name']) ?>
+                                                        <input type="hidden" name="emp_id[]" value="<?= $emp['emp_id'] ?>">
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" class="present" name="present_<?= $emp['emp_id'] ?>">
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" class="absent" name="absent_<?= $emp['emp_id'] ?>">
+                                                    </td>
+                                                    <td>
+                                                        <input type="time" name="check_in_<?= $emp['emp_id'] ?>" class="form-control check-in">
+                                                    </td>
+                                                    <td>
+                                                        <input type="time" name="check_out_<?= $emp['emp_id'] ?>" class="form-control check-out">
+                                                    </td>
+                                                </tr>
+                                            <?php
+                                                $counter++;
+                                            endwhile;
+                                            ?>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label>Check In Time</label>
-                                    <input type="time" name="check_in" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Check Out Time</label>
-                                    <input type="time" name="check_out" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Status</label>
-                                    <select name="status" class="form-select" required>
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                        <option value="Late">Late</option>
-                                        <option value="Half Day">Half Day</option>
-                                    </select>
-                                </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" name="save_attendance" class="btn btn-primary">Save Attendance</button>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="add_attendance" class="btn btn-primary">Add Record</button>
                         </div>
                     </form>
                 </div>
             </div>
 
+
+
             <!-- Edit Attendance Modal -->
-            <div class="modal fade" id="editAttendanceModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <form method="POST" class="modal-content">
-                        <input type="hidden" name="attendance_id" id="edit_attendance_id">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit Attendance Record</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label>Employee</label>
-                                    <select name="emp_id" id="edit_emp_id" class="form-select" required>
-                                        <option value="">-- Select Employee --</option>
-                                        <?php
-                                        // Reset pointer and fetch employees again for the dropdown
-                                        $employees->data_seek(0);
-                                        while ($emp = $employees->fetch_assoc()): ?>
-                                            <option value="<?= $emp['emp_id'] ?>"><?= $emp['name'] ?></option>
-                                        <?php endwhile; ?>
-                                    </select>
+            <?php
+            $attendanceEdit = $conn->query("SELECT a.*, e.name AS employee_name 
+                FROM attendance a 
+                JOIN employees e ON a.emp_id = e.emp_id 
+                WHERE attendance_date = '$today'");
+
+            while ($row = $attendanceEdit->fetch_assoc()):
+            ?>
+                <!-- Edit Modal for ID <?= $row['id'] ?> -->
+                <div class="modal fade" id="editAttendanceModal<?= $row['id'] ?>" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Attendance (<?= htmlspecialchars($row['employee_name']) ?>)</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="attendance_id" value="<?= $row['id'] ?>">
+                                    <div class="mb-3">
+                                        <label>Date</label>
+                                        <input type="text" class="form-control" value="<?= $row['attendance_date'] ?>" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Status</label>
+                                        <input type="text" class="form-control" value="<?= $row['status'] ?>" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Check In</label>
+                                        <input type="text" class="form-control" value="<?= $row['check_in'] ?: '--' ?>" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Check Out (Edit)</label>
+                                        <input type="time" name="check_out" class="form-control"
+                                            value="<?= $row['check_out'] ?>">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" name="update_attendance" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label>Check In Time</label>
-                                    <input type="time" name="check_in" id="edit_check_in" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Check Out Time</label>
-                                    <input type="time" name="check_out" id="edit_check_out" class="form-control">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label>Status</label>
-                                    <select name="status" id="edit_status" class="form-select" required>
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                        <option value="Late">Late</option>
-                                        <option value="Half Day">Half Day</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" name="update_attendance" class="btn btn-primary">Update Record</button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            <?php endwhile; ?>
+
+
+
 
             <!-- ============================================================== -->
             <!-- End Page content -->
@@ -561,70 +581,71 @@ $employees = $conn->query("SELECT * FROM employees");
         <script src="../assets/js/pages/demo.dashboard.js"></script>
         <!-- end demo js-->
 
-
-
         <script>
-            document.querySelectorAll('.editAttendanceBtn').forEach(btn => console.log(btn));
+            document.getElementById('addAttendanceModal').addEventListener('shown.bs.modal', function() {
+                document.querySelectorAll('#addAttendanceModal tbody tr').forEach(row => {
+                    const present = row.querySelector('.present');
+                    const absent = row.querySelector('.absent');
+                    const checkIn = row.querySelector('.check-in');
+                    const checkOut = row.querySelector('.check-out');
 
+                    function updateInputs() {
+                        if (present.checked) {
+                            absent.checked = false;
+                            checkIn.disabled = false;
+                            checkOut.disabled = false;
+                        } else if (absent.checked) {
+                            present.checked = false;
+                            checkIn.disabled = true;
+                            checkOut.disabled = true;
+                            checkIn.value = '';
+                            checkOut.value = '';
+                        } else {
+                            checkIn.disabled = true;
+                            checkOut.disabled = true;
+                            checkIn.value = '';
+                            checkOut.value = '';
+                        }
+                    }
 
-            $(document).ready(function() {
-                $('#attendanceTable').DataTable({
-                    scrollX: true
+                    present.addEventListener('change', updateInputs);
+                    absent.addEventListener('change', updateInputs);
+
+                    updateInputs();
                 });
             });
 
-            // Delete Attendance function
-            document.querySelectorAll(".deleteAttendanceBtn").forEach(button => {
-                button.addEventListener("click", (e) => {
+
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const editForm = document.querySelector('#editAttendanceModal form');
+
+                editForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const attendanceId = button.dataset.id;
 
                     Swal.fire({
                         title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
+                        text: "You are about to update check-out times.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#3085d6',
                         cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, delete it!'
+                        confirmButtonText: 'Yes, update it!'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            document.getElementById('deleteAttendanceId').value = attendanceId;
-                            document.getElementById('deleteAttendanceForm').submit();
+                            this.submit();
                         }
                     });
-                });
-            });
-
-            // Edit Attendance Button Click Handler
-            document.querySelectorAll('.editAttendanceBtn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const row = this.closest('tr');
-                    const attendanceId = row.cells[0].textContent;
-                    const employeeName = row.cells[1].textContent;
-                    const checkIn = row.cells[3].textContent;
-                    const checkOut = row.cells[4].textContent;
-                    const status = row.cells[5].textContent.trim();
-
-                    let empId = '';
-                    const employeeOptions = document.querySelectorAll('#edit_emp_id option');
-                    employeeOptions.forEach(option => {
-                        if (option.textContent === employeeName) {
-                            empId = option.value;
-                        }
-                    });
-
-                    document.getElementById('edit_attendance_id').value = attendanceId;
-                    document.getElementById('edit_emp_id').value = empId;
-                    document.getElementById('edit_check_in').value = (checkIn === '--') ? '' : checkIn;
-                    document.getElementById('edit_check_out').value = (checkOut === '--') ? '' : checkOut;
-                    document.getElementById('edit_status').value = status;
-
-                    const editModal = new bootstrap.Modal(document.getElementById('editAttendanceModal'));
-                    editModal.show();
                 });
             });
         </script>
+
+
+
+
+
+
+
 </body>
 
 </html>
