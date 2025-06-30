@@ -394,7 +394,7 @@ include '../connection/db_connect.php';
                         echo "<script>
                             setTimeout(function() {
                                 window.location.href = 'admin_report.php';
-                            }, 5000);
+                            }, 50000);
                         </script>";
                     }
 
@@ -422,7 +422,7 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
                         echo "<script>
                     setTimeout(function() {
                         window.location.href = 'admin_report.php';
-                    }, 5000);
+                    }, 50000);
                 </script>";
                     }
                     ?>
