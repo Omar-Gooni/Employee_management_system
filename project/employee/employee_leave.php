@@ -72,19 +72,57 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
     <link rel="stylesheet" href="../assets/css/icons.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <style>
-        #leaveTable {
-            font-size: 14px;
-            color: #000 !important;
+        /* ✅ Apply scroll on small screens */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        #leaveTable thead th {
-            font-weight: 700 !important;
-            background-color: #f8f9fa;
+        /* ✅ Keep table full width and collapse borders */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        #leaveTable td {
-            vertical-align: middle;
-            color: #000 !important;
+        /* ✅ Prevent table columns from wrapping badly */
+        table th,
+        table td {
+            white-space: nowrap;
+        }
+
+        /* ✅ Optional mobile adjustments */
+        @media screen and (max-width: 600px) {
+
+            table th,
+            table td {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
+        }
+
+        /* Base alert styling */
+        #leaveBlockAlert {
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        /* ✅ Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            #leaveBlockAlert {
+                font-size: 14px;
+                padding: 12px 16px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            #leaveBlockAlert {
+                font-size: 13px;
+                padding: 10px 14px;
+            }
         }
     </style>
 </head>
@@ -121,7 +159,7 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
                     </a>
                 </li>
                 <br>
-             
+
                 <li class="side-nav-item">
                     <a href="employee_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
@@ -274,30 +312,32 @@ $leaves = $conn->query("SELECT * FROM leave_requests WHERE employee_id = $employ
                 scrollX: true
             });
         });
-        document.getElementById('requestLeaveBtn').addEventListener('click', function () {
-        fetch('check_leave_limit.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'employee_id=<?= $employee_id ?>'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.allowed) {
-                // Show the modal
-                let modal = new bootstrap.Modal(document.getElementById('leaveModal'));
-                modal.show();
-            } else {
-                // Show red alert on the page
-                const alertBox = document.getElementById('leaveBlockAlert');
-                alertBox.textContent = data.message;
-                alertBox.classList.remove('d-none');
+        document.getElementById('requestLeaveBtn').addEventListener('click', function() {
+            fetch('check_leave_limit.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'employee_id=<?= $employee_id ?>'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.allowed) {
+                        // Show the modal
+                        let modal = new bootstrap.Modal(document.getElementById('leaveModal'));
+                        modal.show();
+                    } else {
+                        // Show red alert on the page
+                        const alertBox = document.getElementById('leaveBlockAlert');
+                        alertBox.textContent = data.message;
+                        alertBox.classList.remove('d-none');
 
-                setTimeout(() => {
-                    alertBox.classList.add('d-none');
-                }, 4000);
-            }
+                        setTimeout(() => {
+                            alertBox.classList.add('d-none');
+                        }, 4000);
+                    }
+                });
         });
-    });
     </script>
 
 </body>

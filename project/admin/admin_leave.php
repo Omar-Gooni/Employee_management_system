@@ -89,80 +89,35 @@ $leaves = $conn->query("SELECT l.*, e.name FROM leave_requests l JOIN employees 
 
 
     <style>
-        #adminTable th,
-        #adminTable td {
-            white-space: nowrap !important;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            vertical-align: middle;
-            color: #000 !important;
+        /* ✅ Make the table scroll horizontally on small screens */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        #adminTable thead th {
-            background-color: #f8f9fa;
-            font-weight: bold;
+        /* ✅ Make table cells wrap neatly or control width */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-
-
-        /* ----- ACTIONS BUTTONS STYLING ----- */
-        /* Ensures buttons stay in one line */
-        #adminTable td:last-child {
+        /* ✅ Optional: Prevent table from squeezing too small */
+        table th,
+        table td {
             white-space: nowrap;
         }
 
-        /* Button container spacing */
-        #adminTable .d-flex.gap-1 {
-            gap: 0.5rem !important;
-            /* Better spacing between buttons */
-        }
+        /* ✅ Optional: On very small screens, reduce font size */
+        @media screen and (max-width: 600px) {
 
-        /* Base button styling */
-        #adminTable .btn {
-            min-width: 32px;
-            height: 32px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px !important;
-        }
-
-        /* Icon sizing */
-        #adminTable .btn i {
-            font-size: 14px;
-            margin: 0 !important;
-        }
-
-        /* Specific button colors */
-
-
-        /* Hover effects */
-        #adminTable .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            #adminTable .btn {
-                min-width: 28px;
-                height: 28px;
-            }
-
-            #adminTable .btn i {
-                font-size: 12px;
+            table th,
+            table td {
+                font-size: 13px;
+                padding: 6px 8px;
             }
         }
-
-
-        .admin_img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-          .side-nav-item{
+              .side-nav-item{
             margin-bottom: 8px;
         }
     </style>

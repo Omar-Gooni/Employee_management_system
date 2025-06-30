@@ -146,27 +146,43 @@ $result = $conn->query("SELECT * FROM departments");
             transform: translateY(0);
         }
 
-        /* Updated Table Styling */
-        #adminTable {
-            font-size: 16px;
-            /* Increased from default (you can adjust this value) */
-            color: #000000;
-            /* Black text */
+        /* ✅ Make any table inside .table-responsive scroll horizontally if needed */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        #adminTable thead th {
-            font-weight: bold !important;
-            /* Bold headers */
-            background-color: rgb(233, 235, 236);
-            /* Light gray background for headers (optional) */
+        /* ✅ General table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        #adminTable td,
-        #adminTable th {
-            padding: 8px 12px;
-            /* Better spacing */
+        /* ✅ Make table cells stay in one line */
+        table th,
+        table td {
+            white-space: nowrap;
         }
-          .side-nav-item{
+
+        /* ✅ Optional: Adjust font size and padding on small devices */
+        @media screen and (max-width: 600px) {
+
+            table th,
+            table td {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
+
+            .btn {
+                padding: 4px 6px;
+                font-size: 12px;
+            }
+        }
+
+
+
+        .side-nav-item {
             margin-bottom: 8px;
         }
     </style>
