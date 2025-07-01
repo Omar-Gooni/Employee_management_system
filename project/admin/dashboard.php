@@ -32,6 +32,14 @@ $conn->query("
     AND status = 'Inactive'
 ");
 
+// ✅ Count new (unseen) issues
+$new_issues = $conn->query("
+    SELECT COUNT(*) AS count 
+    FROM issues 
+    WHERE is_seen_admin = FALSE
+")->fetch_assoc()['count'];
+
+
 
 
 
@@ -139,7 +147,7 @@ $attendance_summary = $conn->query("SELECT
             padding: 12px;
         }
 
-        .side-nav-item{
+        .side-nav-item {
             margin-bottom: 8px;
         }
     </style>
@@ -169,63 +177,70 @@ $attendance_summary = $conn->query("SELECT
                         <span class="text-white">Dashboard</span>
                     </a>
                 </li>
-            
+
                 <li class="side-nav-item">
                     <a href="admin.php" class="side-nav-link">
                         <i class="fa-solid fa-user-shield text-white"></i>
                         <span class="text-white">Admin</span>
                     </a>
                 </li>
-       
+
                 <li class="side-nav-item">
                     <a href="employee.php" class="side-nav-link">
                         <i class="fa-solid fa-users text-white"></i>
                         <span class="text-white">Employee</span>
                     </a>
                 </li>
-        
+
                 <li class="side-nav-item">
                     <a href="department.php" class="side-nav-link">
                         <i class="fa-solid fa-building text-white"></i>
                         <span class="text-white">Department</span>
                     </a>
                 </li>
-      
+
                 <li class="side-nav-item">
                     <a href="tasks.php" class="side-nav-link">
                         <i class="fa-solid fa-tasks text-white"></i>
                         <span class="text-white">Tasks</span>
                     </a>
                 </li>
-        
+
                 <li class="side-nav-item">
                     <a href="employee_task.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-check text-white"></i>
                         <span class="text-white">Employee Tasks</span>
                     </a>
                 </li>
-   
+
                 <li class="side-nav-item">
                     <a href="attendance.php" class="side-nav-link">
                         <i class="fa-solid fa-clipboard-user text-white"></i>
                         <span class="text-white">Attendance</span>
                     </a>
                 </li>
-          
+
                 <li class="side-nav-item">
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
                     </a>
                 </li>
-  
-                 <li class="side-nav-item">
+
+                <li class="side-nav-item">
+                    <a href="admin_issue.php" class="side-nav-link">
+                        <i class="fa-solid fa-clipboard-list text-white"></i>
+                        <span class="text-white">Issue</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
                     <a href="admin_report.php" class="side-nav-link">
                         <i class="fa-solid fa-chart-line text-white"></i>
                         <span class="text-white">Reports</span>
                     </a>
                 </li>
- 
+
                 <li class="side-nav-item">
                     <a href="logout.php" class="side-nav-link">
                         <i class="mdi mdi-logout me-1 text-white"></i>
@@ -358,6 +373,14 @@ $attendance_summary = $conn->query("SELECT
                                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
                                 <?php endif; ?>
+                                <?php if ($new_issues > 0): ?>
+                                    <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+                                        <strong>🚩 New Issue Alert:</strong> You have <?= $new_issues ?> new issue<?= $new_issues > 1 ? 's' : '' ?> reported.
+                                        <a href="admin_issue.php" class="btn btn-sm btn-primary ms-2">Review Now</a>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                <?php endif; ?>
+
 
                             </div>
                         </div>

@@ -21,6 +21,8 @@ $conn->query("
 
 
 
+
+
 // Get employee data
 $employee_id = $_SESSION['emp_id'];
 // Check if admin approved/rejected any leave request the employee hasn't seen yet
@@ -29,6 +31,15 @@ $pending_feedback = $conn->query("
     FROM leave_requests 
     WHERE employee_id = $employee_id 
       AND status IN ('Approved', 'Rejected') 
+      AND is_seen_employee = FALSE
+")->fetch_assoc()['count'];
+
+// ✅ Check if admin responded to any issue (resolved, rejected, or in progress) not seen by employee
+$issue_feedback = $conn->query("
+    SELECT COUNT(*) AS count 
+    FROM issues 
+    WHERE employee_id = $employee_id 
+      AND status IN ('Resolved', 'Rejected', 'In Progress') 
       AND is_seen_employee = FALSE
 ")->fetch_assoc()['count'];
 
@@ -160,12 +171,19 @@ $recent_tasks = $conn->query("
                     </a>
                 </li>
                 <br>
-             
 
                 <li class="side-nav-item">
                     <a href="employee_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
+                    </a>
+                </li>
+                <br>
+
+                <li class="side-nav-item">
+                    <a href="employee_issue.php" class="side-nav-link">
+                        <i class="fa-solid fa-clipboard-list text-white"></i>
+                        <span class="text-white">Issue</span>
                     </a>
                 </li>
                 <br>
@@ -217,6 +235,14 @@ $recent_tasks = $conn->query("
                                 <?php endif; ?>
 
                             </div>
+                            <?php if ($issue_feedback > 0): ?>
+                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                    You have <?= $issue_feedback ?> new response<?= $issue_feedback > 1 ? 's' : '' ?> to your issue<?= $issue_feedback > 1 ? 's' : '' ?> from admin.
+                                    <a href="employee_issue.php" class="btn btn-sm btn-primary ms-2">View Now</a>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <?php endif; ?>
+
                         </div>
                     </div>
 

@@ -4,23 +4,46 @@ if (!isset($_SESSION['admin_id'])) {
     header("Location: ../login/login.php");
     exit();
 }
-?>
 
-
-
-
-<?php
 include '../connection/db_connect.php';
 
+// ✅ Mark all unseen issues as seen by admin
+$conn->query("UPDATE issues SET is_seen_admin = TRUE WHERE is_seen_admin = FALSE");
 
+// ✅ Handle admin action (update status and comment)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_issue'])) {
+    $issue_id = $_POST['issue_id'];
+    $status = $_POST['status'];
+    $admin_comment = $_POST['admin_comment'];
+
+    $conn->query("
+        UPDATE issues 
+        SET status = '$status', 
+            admin_comment = '$admin_comment', 
+            is_seen_employee = FALSE 
+        WHERE id = $issue_id
+    ");
+
+    header("Location: admin_issue.php");
+    exit();
+}
+
+// ✅ Fetch all issues with employee details
+$issues = $conn->query("
+    SELECT i.*, e.name 
+    FROM issues i 
+    JOIN employees e ON i.employee_id = e.emp_id
+    ORDER BY submitted_at DESC
+");
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <title>Reports</title>
+    <title>Issue</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
     <meta content="Coderthemes" name="author" />
@@ -38,7 +61,6 @@ include '../connection/db_connect.php';
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
     <!-- DataTables & Bootstrap CSS -->
@@ -60,19 +82,33 @@ include '../connection/db_connect.php';
 
 
     <style>
-        #employeeTable {
-            font-size: 14px;
-            color: #000 !important;
+        /* ✅ Make the table scroll horizontally on small screens */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        #employeeTable thead th {
-            font-weight: 700 !important;
-            background-color: #f8f9fa;
+        /* ✅ Make table cells wrap neatly or control width */
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        #employeeTable td {
-            color: #000 !important;
-            vertical-align: middle;
+        /* ✅ Optional: Prevent table from squeezing too small */
+        table th,
+        table td {
+            white-space: nowrap;
+        }
+
+        /* ✅ Optional: On very small screens, reduce font size */
+        @media screen and (max-width: 600px) {
+
+            table th,
+            table td {
+                font-size: 13px;
+                padding: 6px 8px;
+            }
         }
 
         .side-nav-item {
@@ -97,6 +133,7 @@ include '../connection/db_connect.php';
                     <img src="../assets/images/logo_sm.png" alt="" height="16">
                 </span>
             </a>
+
 
 
 
@@ -303,154 +340,104 @@ include '../connection/db_connect.php';
                                     </a>
                                 </form>
                             </div>
-                            <h4 class="page-title">Reports</h4>
+                            <h4 class="page-title">Issue</h4>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- php -->
 
-            <div class="container-fluid mt-4">
-                <div class="row justify-content-center">
-                    <!-- Employee Report -->
-                    <div class="col-md-5">
-                        <div class="card p-3">
-                            <div class="card-header text-center font-bold-400">Employee Report</div>
-                            <div class="card-body">
-                                <!-- Add ID to Employee Report Form -->
-                                <div id="employeeNotification" style="display:none; color: red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
 
-                                <form id="employeeForm" method="GET" action="">
-                                    <label>Search by:</label>
-                                    <select name="filter_by" class="form-control mb-2">
-                                        <option value="emp_id">ID</option>
-                                        <option value="email">Email</option>
-                                        <option value="phone">Phone</option>
-                                    </select>
-                                    <input type="text" name="query" id="queryInput" class="form-control mb-2" placeholder="Enter search keyword">
-                                    <button type="submit" class="btn btn-primary w-100">Search</button>
-                                </form>
-
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Task Report -->
-                    <div class="col-md-5">
-                        <div class="card p-2">
-                            <div class="card-header text-center">Task Report (By Date Range)</div>
-                            <div class="card-body">
-                                <div id="taskNotification" style="display:none; color:red;  padding: 8px 12px; border-radius: 4px; margin-bottom: 10px;"></div>
-
-                                <!-- Add ID to Task Report Form -->
-                                <form id="taskForm" method="GET" action="">
-                                    <div class="row">
-                                        <div class="col">
-                                            <label>From:</label>
-                                            <input type="date" name="from_date" id="fromDate" class="form-control">
-                                        </div>
-                                        <div class="col">
-                                            <label>To:</label>
-                                            <input type="date" name="to_date" id="toDate" class="form-control">
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary mt-3 w-100">Filter</button>
-                                </form>
-
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table id="leaveTable" class="table table-bordered dt-responsive nowrap w-100">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Issue Type</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Admin Comment</th>
+                            <th>Submitted At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $issues->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['name']) ?></td>
+                                <td><?= htmlspecialchars($row['issue_type']) ?></td>
+                                <td><?= htmlspecialchars($row['description']) ?></td>
+                                <td><?= htmlspecialchars($row['status']) ?></td>
+                                <td><?= htmlspecialchars($row['admin_comment']) ?></td>
+                                <td><?= $row['submitted_at'] ?></td>
+                                <td>
+                                    <?php if ($row['status'] == 'Pending' || $row['status'] == 'In Progress'): ?>
+                                        <button class="btn btn-primary btn-sm actBtn"
+                                            data-id="<?= $row['id'] ?>"
+                                            data-status="In Progress">
+                                            <i class="fas fa-spinner"></i>
+                                        </button>
+                                        <button class="btn btn-success btn-sm actBtn"
+                                            data-id="<?= $row['id'] ?>"
+                                            data-status="Resolved">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm actBtn"
+                                            data-id="<?= $row['id'] ?>"
+                                            data-status="Rejected">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <span>-</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
             </div>
 
 
 
-            <!-- Results Section -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <?php
-                    if (isset($_GET['filter_by']) && isset($_GET['query'])) {
-                        $filter = $_GET['filter_by'];
-                        $query = $_GET['query'];
-                        $sql = "SELECT * FROM employees WHERE $filter = '$query'";
-                        $res = $conn->query($sql);
-                        if ($res->num_rows > 0) {
-                            $emp = $res->fetch_assoc();
-                            $emp_id = $emp['emp_id'];
-                            $present = $conn->query("SELECT COUNT(*) as count FROM attendance WHERE emp_id=$emp_id AND status='Present'")->fetch_assoc()['count'];
-                            $absent = $conn->query("SELECT COUNT(*) as count FROM attendance WHERE emp_id=$emp_id AND status='Absent'")->fetch_assoc()['count'];
-                            $assigned = $conn->query("SELECT COUNT(*) as count FROM employee_task WHERE employee_task_id=$emp_id")->fetch_assoc()['count'];
-                            $completed = $conn->query("SELECT COUNT(*) as count FROM employee_task WHERE employee_task_id=$emp_id AND status='Completed'")->fetch_assoc()['count'];
 
-                            echo "<h5 class='mt-3'>Employee Report Result</h5>";
-                            echo "<button class='btn btn-success mb-2' onclick=\"exportTableToExcel('employeeTable', 'employee_report')\">Export to Excel</button>";
-                            echo "<table class='table table-bordered' id='employeeTable'>
-<thead class='table-light'>
-<tr><th>Name</th><th>ID</th><th>Email</th><th>Present</th><th>Absent</th><th>Assigned</th><th>Completed</th></tr>
-</thead>
-<tbody>
-<tr>
-<td>{$emp['name']}</td><td>{$emp['emp_id']}</td><td>{$emp['email']}</td><td>$present</td><td>$absent</td><td>$assigned</td><td>$completed</td>
-</tr>
-</tbody></table>";
-                        } else {
-                            echo "<p class='text-danger mt-3'>No employee found.</p>";
-                        }
-                        echo "<script>
-                            setTimeout(function() {
-                                window.location.href = 'admin_report.php';
-                            }, 50000);
-                        </script>";
-                    }
 
-                    if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
-                        $from = $_GET['from_date'];
-                        $to = $_GET['to_date'];
-                        $query = "SELECT t.title, et.status, e.name FROM tasks t
-JOIN employee_task et ON t.task_id = et.task_id
-JOIN employees e ON et.employee_task_id = e.emp_id
-WHERE t.start_date BETWEEN '$from' AND '$to'";
-                        $res = $conn->query($query);
-                        if ($res->num_rows > 0) {
-                            echo "<h5 class='mt-5'>Task Report Result</h5>";
-                            echo "<button class='btn btn-success mb-2' onclick=\"exportTableToExcel('taskTable', 'task_report')\">Export to Excel</button>";
-                            echo "<table class='table table-bordered' id='taskTable'>
-<thead class='table-light'><tr><th>Task</th><th>Employee</th><th>Status</th></tr></thead>
-<tbody>";
-                            while ($row = $res->fetch_assoc()) {
-                                echo "<tr><td>{$row['title']}</td><td>{$row['name']}</td><td>{$row['status']}</td></tr>";
-                            }
-                            echo "</tbody></table>";
-                        } else {
-                            echo "<p class='text-warning mt-3'>No tasks found in this range.</p>";
-                        }
-                        echo "<script>
-                    setTimeout(function() {
-                        window.location.href = 'admin_report.php';
-                    }, 50000);
-                </script>";
-                    }
-                    ?>
-                </div>
-            </div>
+
+
+
+
         </div>
 
-    </div>
-    </div>
-
-
-
-
-
-    <!-- ============================================================== -->
-    <!-- End Page content -->
-    <!-- ============================================================== -->
-
+        <!-- ============================================================== -->
+        <!-- End Page content -->
+        <!-- ============================================================== -->
 
 
     </div>
+
+    <!-- Action Modal -->
+    <div class="modal fade" id="actionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="POST" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Issue Decision</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="issue_id" id="modal_issue_id">
+                    <input type="hidden" name="status" id="modal_status">
+                    <div class="mb-3">
+                        <label>Admin Comment (optional)</label>
+                        <textarea name="admin_comment" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="action_issue" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- END wrapper -->
 
     <!-- bundle -->
@@ -474,49 +461,24 @@ WHERE t.start_date BETWEEN '$from' AND '$to'";
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
+    <!-- DataTables and Modal trigger -->
     <script>
-        function exportTableToExcel(tableID, filename = '') {
-            var table = document.getElementById(tableID);
-            var wb = XLSX.utils.table_to_book(table, {
-                sheet: "Sheet 1"
+        document.querySelectorAll('.actBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                const issueId = this.dataset.id;
+                const status = this.dataset.status;
+
+                document.getElementById('modal_issue_id').value = issueId;
+                document.getElementById('modal_status').value = status;
+
+                const modalElement = document.getElementById('actionModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.show();
             });
-            XLSX.writeFile(wb, filename ? filename + ".xlsx" : "export.xlsx");
-        }
-
-
-
-
-        function showFormNotification(id, message) {
-            const el = document.getElementById(id);
-            el.textContent = message;
-            el.style.display = 'block';
-
-            // Hide after 3 seconds
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 3000);
-        }
-
-        // Employee Form Validation
-        document.getElementById('employeeForm').addEventListener('submit', function(e) {
-            const query = document.getElementById('queryInput').value.trim();
-            if (query === '') {
-                e.preventDefault();
-                showFormNotification('employeeNotification', 'Please enter a search keyword.');
-            }
-        });
-
-        // Task Form Validation
-        document.getElementById('taskForm').addEventListener('submit', function(e) {
-            const from = document.getElementById('fromDate').value;
-            const to = document.getElementById('toDate').value;
-            if (from === '' || to === '') {
-                e.preventDefault();
-                showFormNotification('taskNotification', 'Please select both From and To dates.');
-            }
         });
     </script>
+
+
 
 
 </body>

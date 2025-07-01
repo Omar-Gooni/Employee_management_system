@@ -208,7 +208,6 @@ $result = $conn->query("SELECT * FROM departments");
 
 
             <!--- Sidemenu -->
-            <!--- Sidemenu -->
             <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="dashboard.php" class="side-nav-link">
@@ -263,6 +262,13 @@ $result = $conn->query("SELECT * FROM departments");
                     <a href="admin_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
+                    <a href="admin_issue.php" class="side-nav-link">
+                        <i class="fa-solid fa-clipboard-list text-white"></i>
+                        <span class="text-white">Issue</span>
                     </a>
                 </li>
 

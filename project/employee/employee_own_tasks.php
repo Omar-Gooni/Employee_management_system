@@ -104,7 +104,7 @@ $result = $conn->query($query);
             </a>
 
             <!--- Sidemenu -->
-               <ul class="side-nav">
+            <ul class="side-nav">
                 <li class="side-nav-item">
                     <a href="employee_dashboard.php" class="side-nav-link">
                         <i class="fa-solid fa-house text-white"></i>
@@ -126,11 +126,19 @@ $result = $conn->query($query);
                     </a>
                 </li>
                 <br>
-           
+
                 <li class="side-nav-item">
                     <a href="employee_leave.php" class="side-nav-link">
                         <i class="fa-solid fa-file-lines text-white"></i>
                         <span class="text-white">Leave Request</span>
+                    </a>
+                </li>
+                <br>
+
+                <li class="side-nav-item">
+                    <a href="employee_issue.php" class="side-nav-link">
+                        <i class="fa-solid fa-clipboard-list text-white"></i>
+                        <span class="text-white">Issue</span>
                     </a>
                 </li>
                 <br>
@@ -140,7 +148,7 @@ $result = $conn->query($query);
                         <span class="text-white">Logout</span>
                     </a>
                 </li>
-              
+
             </ul>
             <!-- End Sidebar -->
 
