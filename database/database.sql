@@ -140,3 +140,21 @@ values(
 "admin"
 
 );
+
+
+
+
+
+
+CREATE TABLE issues (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    issue_type VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('Pending', 'In Progress', 'Resolved', 'Rejected') DEFAULT 'Pending',
+    admin_comment TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_seen_admin BOOLEAN DEFAULT FALSE,
+    is_seen_employee BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (employee_id) REFERENCES employees(emp_id) ON DELETE CASCADE
+);
