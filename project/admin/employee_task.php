@@ -59,7 +59,8 @@ $employee_tasks = $conn->query("SELECT et.*, e.name as employee_name, t.title as
 $employees = $conn->query("SELECT * FROM employees");
 
 // Fetch tasks for dropdown
-$tasks = $conn->query("SELECT * FROM tasks");
+$tasks = $conn->query("SELECT * FROM tasks WHERE status != 'Completed'");
+
 ?>
 
 <!DOCTYPE html>
@@ -110,7 +111,8 @@ $tasks = $conn->query("SELECT * FROM tasks");
         .table-responsive {
             overflow-x: auto;
         }
-          .side-nav-item{
+
+        .side-nav-item {
             margin-bottom: 8px;
         }
     </style>
@@ -396,9 +398,9 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <select name="task_id" class="form-select" required>
                                             <option value="">-- Select Task --</option>
                                             <?php
-                                            $tasks->data_seek(0); // Reset pointer
+                                            $tasks->data_seek(0); // reset pointer if used in multiple places
                                             while ($task = $tasks->fetch_assoc()): ?>
-                                                <option value="<?= $task['task_id'] ?>"><?= $task['title'] ?></option>
+                                                <option value="<?= $task['task_id'] ?>"><?= htmlspecialchars($task['title']) ?></option>
                                             <?php endwhile; ?>
                                         </select>
                                     </div>
@@ -455,9 +457,9 @@ $tasks = $conn->query("SELECT * FROM tasks");
                                         <select name="task_id" id="edit_task_id" class="form-select" required>
                                             <option value="">-- Select Task --</option>
                                             <?php
-                                            $tasks->data_seek(0); // Reset pointer
+                                            $tasks->data_seek(0); // reset pointer if used in multiple places
                                             while ($task = $tasks->fetch_assoc()): ?>
-                                                <option value="<?= $task['task_id'] ?>"><?= $task['title'] ?></option>
+                                                <option value="<?= $task['task_id'] ?>"><?= htmlspecialchars($task['title']) ?></option>
                                             <?php endwhile; ?>
                                         </select>
                                     </div>
