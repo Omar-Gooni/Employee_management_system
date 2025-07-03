@@ -419,11 +419,11 @@ $tasks = $conn->query("SELECT * FROM tasks WHERE status != 'Completed'");
                                     <div class="col-md-6 mb-3">
                                         <label>Status</label>
                                         <select name="status" class="form-select" required>
-                                            <option value="Assigned">Assigned</option>
-                                            <option value="In Progress">In Progress</option>
-                                            <option value="Completed">Completed</option>
-                                            <option value="On Hold">On Hold</option>
-                                            <option value="Cancelled">Cancelled</option>
+                                         <option value="Assigned">Assigned</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Completed">Completed</option>
+                                            
                                         </select>
                                     </div>
                                 </div>

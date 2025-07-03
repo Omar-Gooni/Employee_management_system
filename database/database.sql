@@ -71,6 +71,9 @@ CREATE TABLE tasks (
     due_date DATE,
     status VARCHAR(50)
 );
+ALTER TABLE tasks 
+ADD COLUMN budget DECIMAL(10, 2) DEFAULT 0;
+
 CREATE TABLE employee_task (
     id INT AUTO_INCREMENT PRIMARY KEY,
     emp_id INT,

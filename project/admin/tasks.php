@@ -24,10 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $due_date = $_POST['due_date'];
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
+        $budget = $_POST['budget'];
         $status = $_POST['status'];
 
-        $query = "INSERT INTO tasks (title, description, due_date, start_date, end_date, status) 
-                  VALUES ('$title', '$description','$due_date', '$start_date', '$end_date', '$status')";
+        $query = "INSERT INTO tasks (title, description, due_date, start_date, end_date,budget , status) 
+                  VALUES ('$title', '$description','$due_date', '$start_date', '$end_date',  '$budget','$status')";
         $conn->query($query);
     }
 
@@ -39,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $start_date = $_POST['start_date'];
         $end_date = $_POST['end_date'];
+        $budget = $_POST['budget'];
         $status = $_POST['status'];
 
         $query = "UPDATE tasks SET 
@@ -46,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   description='$description', 
                   start_date='$start_date', 
                   end_date='$end_date', 
-                  status='$status' 
+                  status='$status' ,
+                    budget='$budget'
                   WHERE task_id=$task_id";
         $conn->query($query);
     }
@@ -134,7 +137,8 @@ $employees = $conn->query("SELECT * FROM employees");
             padding: 2px 6px;
             font-size: 12px;
         }
-          .side-nav-item{
+
+        .side-nav-item {
             margin-bottom: 8px;
         }
     </style>
@@ -218,7 +222,7 @@ $employees = $conn->query("SELECT * FROM employees");
 
                 <li class="side-nav-item">
                     <a href="admin_issue.php" class="side-nav-link">
-                         <i class="fa-solid fa-clipboard-list text-white"></i>
+                        <i class="fa-solid fa-clipboard-list text-white"></i>
                         <span class="text-white">Issue</span>
                     </a>
                 </li>
@@ -391,6 +395,7 @@ $employees = $conn->query("SELECT * FROM employees");
                             <th>Due Date</th>
                             <th>Start Date</th>
                             <th>End Date</th>
+                            <th>Budget</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -404,6 +409,7 @@ $employees = $conn->query("SELECT * FROM employees");
                                 <td><?= $row['due_date'] ?></td>
                                 <td><?= $row['start_date'] ?></td>
                                 <td><?= $row['end_date'] ?></td>
+                                <td><?= $row['budget'] ?></td>
                                 <td><?= $row['status'] ?></td>
                                 <td>
                                     <div class="d-flex gap-1">
@@ -463,8 +469,15 @@ $employees = $conn->query("SELECT * FROM employees");
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <label>Budget</label>
+                                    <input type="number" name="budget" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" class="form-select" required>
+                                        <option value="Assigned">Assigned</option>
                                         <option value="Pending">Pending</option>
                                         <option value="In Progress">In Progress</option>
                                         <option value="Completed">Completed</option>
@@ -515,8 +528,16 @@ $employees = $conn->query("SELECT * FROM employees");
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
+                                    <label>Budget</label>
+                                    <input type="number" name="budget" id="edit_budget" class="form-control" required>
+
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label>Status</label>
                                     <select name="status" id="edit_status" class="form-select" required>
+                                         <option value="Assigned">Assigned</option>
                                         <option value="Pending">Pending</option>
                                         <option value="In Progress">In Progress</option>
                                         <option value="Completed">Completed</option>
@@ -607,18 +628,11 @@ $employees = $conn->query("SELECT * FROM employees");
                 const taskId = row.cells[0].textContent;
                 const title = row.cells[1].textContent;
                 const description = row.cells[2].textContent;
-                const startDate = row.cells[3].textContent;
-                const endDate = row.cells[4].textContent;
-                const status = row.cells[5].textContent;
-
-                // Find the employee ID (this assumes employee name is unique)
-                let empId = '';
-                const employeeOptions = document.querySelectorAll('#edit_emp_id option');
-                employeeOptions.forEach(option => {
-                    if (option.textContent === employeeName) {
-                        empId = option.value;
-                    }
-                });
+                const dueDate = row.cells[3].textContent;
+                const startDate = row.cells[4].textContent;
+                const endDate = row.cells[5].textContent;
+                const budget = row.cells[6].textContent; // Read budget correctly from 5th index
+                const status = row.cells[7].textContent.trim(); // Read status correctly from 6th index
 
                 // Populate the edit modal
                 document.getElementById('edit_task_id').value = taskId;
@@ -626,9 +640,9 @@ $employees = $conn->query("SELECT * FROM employees");
                 document.getElementById('edit_description').value = description;
                 document.getElementById('edit_start_date').value = startDate;
                 document.getElementById('edit_end_date').value = endDate;
+                document.getElementById('edit_budget').value = budget; // Add budget field if needed
                 document.getElementById('edit_status').value = status;
 
-                // Show the modal
                 const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
                 editModal.show();
             });

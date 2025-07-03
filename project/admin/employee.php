@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $name = $_POST['name'];
         $email = $_POST['email'];
         $phone = $_POST['phone'];
-        $gender = $_POST['gender'];
+     
         $department_id = $_POST['department_id'] ?: 'NULL';
         $employee_type_id = $_POST['employee_type_id'];
         $salary = $_POST['salary'];
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         name = '$name', 
         email = '$email', 
         phone = '$phone', 
-        gender = '$gender', 
+     
         department_id = $department_id, 
         employee_type_id = $employee_type_id, 
         salary = $salary, 
@@ -689,17 +689,7 @@ $employee_types = $conn->query("SELECT * FROM employee_types");
                                     <label>Phone</label>
                                     <input type="text" name="phone" id="edit_phone" class="form-control" required>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label d-block">Gender</label>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="genderMale" value="Male" required>
-                                        <label class="form-check-label" for="genderMale">Male</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="Female" required>
-                                        <label class="form-check-label" for="genderFemale">Female</label>
-                                    </div>
-                                </div>
+                       
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">

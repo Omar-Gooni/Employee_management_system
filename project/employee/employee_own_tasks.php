@@ -5,18 +5,34 @@ if (!isset($_SESSION['emp_id'])) {
     exit();
 }
 
-
 include '../connection/db_connect.php';
 $emp_id = $_SESSION['emp_id'];
 
-// Handle status update
+// ✅ Handle status update when employee submits
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
     $employee_task_id = intval($_POST['employee_task_id']);
     $new_status = $conn->real_escape_string($_POST['status']);
-    $conn->query("UPDATE employee_task SET status = '$new_status' WHERE employee_task_id = $employee_task_id AND employee_task_id = $emp_id");
+
+    // ✅ Update employee_task table (Employee's own task status)
+    $conn->query("UPDATE employee_task 
+                  SET status = '$new_status' 
+                  WHERE employee_task_id = $employee_task_id 
+                  AND employee_task_id = $emp_id");
+
+    // ✅ Get the task_id of this employee_task
+    $taskResult = $conn->query("SELECT task_id FROM employee_task 
+                                WHERE employee_task_id = $employee_task_id 
+                                AND employee_task_id = $emp_id");
+
+    if ($taskResult && $taskRow = $taskResult->fetch_assoc()) {
+        $task_id = $taskRow['task_id'];
+
+        // ✅ Update the tasks table status
+        $conn->query("UPDATE tasks SET status = '$new_status' WHERE task_id = $task_id");
+    }
 }
 
-// Fetch tasks assigned to the logged-in employee
+// ✅ Fetch tasks assigned to the logged-in employee
 $query = "
     SELECT et.employee_task_id, t.title, t.description, t.start_date, t.end_date,
            et.assigned_date, et.status
@@ -28,6 +44,7 @@ $query = "
 
 $result = $conn->query($query);
 ?>
+
 
 
 <!DOCTYPE html>
@@ -278,9 +295,12 @@ $result = $conn->query($query);
                                         <td>
                                             <select name="status" class="form-select form-select-sm">
                                                 <option value="Assigned" <?php if ($row['status'] == 'Assigned') echo 'selected'; ?>>Assigned</option>
+
+                                                <option value="Pending" <?php if ($row['status'] == 'Assigned') echo 'selected'; ?>>Pending</option>
                                                 <option value="In Progress" <?php if ($row['status'] == 'In Progress') echo 'selected'; ?>>In Progress</option>
                                                 <option value="Completed" <?php if ($row['status'] == 'Completed') echo 'selected'; ?>>Completed</option>
                                             </select>
+                                            
                                         </td>
                                         <td>
                                             <button type="submit" name="update_status" class="btn btn-sm btn-primary">
@@ -293,7 +313,7 @@ $result = $conn->query($query);
                         </tbody>
                     </table>
                 </div>
-
+                                   
 
             </div>
             <!-- ============================================================== -->
